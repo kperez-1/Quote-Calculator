@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Quote Calc">
+<meta name="theme-color" content="#1D9E75">
+<title>Quote Calculator</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f4f0;color:#1a1a1a;padding:12px;max-width:580px;margin:0 auto;padding-bottom:40px;}
+  h1{font-size:17px;font-weight:600;color:#1a1a1a;margin-bottom:14px;padding:4px 0;}
+  .card{background:#ffffff;border:0.5px solid rgba(0,0,0,0.12);border-radius:12px;padding:14px 16px;margin-bottom:10px;}
+  .card-title{font-size:14px;font-weight:600;color:#1a1a1a;margin-bottom:12px;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+  .field{display:flex;flex-direction:column;gap:4px;}
+  .field label{font-size:12px;color:#666;}
+  .field input,.field select{height:38px;padding:0 10px;border:0.5px solid rgba(0,0,0,0.15);border-radius:8px;background:#f5f4f0;color:#1a1a1a;font-size:14px;width:100%;-webkit-appearance:none;appearance:none;}
+  .field input:focus,.field select:focus{outline:2px solid #1D9E75;outline-offset:-1px;}
+  .toggle{position:relative;width:36px;height:20px;flex-shrink:0;}
+  .toggle input{opacity:0;width:0;height:0;}
+  .tog-sl{position:absolute;cursor:pointer;inset:0;background:#ccc;border-radius:20px;transition:background 0.2s;}
+  .tog-sl:before{content:'';position:absolute;width:14px;height:14px;left:3px;top:3px;background:white;border-radius:50%;transition:transform 0.2s;}
+  .toggle input:checked+.tog-sl{background:#1D9E75;}
+  .toggle input:checked+.tog-sl:before{transform:translateX(16px);}
+  .haul-toggle-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+  .mat-block{border:0.5px solid rgba(0,0,0,0.1);border-radius:8px;padding:12px;margin-bottom:8px;background:#f9f9f7;}
+  .mat-block-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .mat-block-title{font-size:13px;font-weight:600;color:#1a1a1a;}
+  .remove-btn{height:24px;padding:0 10px;border:0.5px solid rgba(0,0,0,0.15);border-radius:6px;background:transparent;color:#666;font-size:11px;cursor:pointer;}
+  .tax-row{display:flex;gap:6px;align-items:flex-end;}
+  .tax-input-wrap{flex:1;}
+  .tax-toggle-wrap{display:flex;flex-direction:column;gap:4px;align-items:center;flex-shrink:0;padding-bottom:2px;}
+  .tax-toggle-label{font-size:10px;color:#666;white-space:nowrap;}
+  .margin-block{margin-top:8px;}
+  .margin-slider-row{display:flex;align-items:center;gap:10px;}
+  .margin-slider-row input[type=range]{flex:1;accent-color:#1D9E75;}
+  .margin-val{font-size:13px;font-weight:600;min-width:38px;text-align:right;color:#1a1a1a;}
+  .margin-label{font-size:12px;color:#666;white-space:nowrap;}
+  .nudge-row{display:flex;gap:4px;margin-top:5px;}
+  .nudge-btn{flex:1;height:28px;border:0.5px solid rgba(0,0,0,0.15);border-radius:7px;background:#f5f4f0;color:#333;font-size:18px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .nudge-btn:active{background:#e0e0dc;}
+  .add-btn{width:100%;height:36px;border:1px dashed rgba(0,0,0,0.2);border-radius:8px;background:transparent;color:#666;font-size:13px;cursor:pointer;margin-top:2px;}
+  .add-btn:active{background:#f0f0ec;}
+  .mode-tabs{display:flex;gap:6px;margin-bottom:10px;}
+  .tab{flex:1;height:36px;border:0.5px solid rgba(0,0,0,0.15);border-radius:8px;background:transparent;color:#666;font-size:13px;cursor:pointer;}
+  .tab.active{background:#1D9E75;color:white;border-color:#1D9E75;}
+  .rnd-row{display:flex;gap:6px;margin-top:6px;align-items:center;}
+  .rnd-divider{width:1px;height:20px;background:rgba(0,0,0,0.12);flex-shrink:0;}
+  .rnd-btn{flex:1;height:36px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:2px solid transparent;transition:all 0.15s;}
+  .rnd-btn.up{background:#E1F5EE;color:#0F6E56;border-color:#5DCAA5;}
+  .rnd-btn.down{background:#FAECE7;color:#993C1D;border-color:#F0997B;}
+  .rnd-btn.up.selected{background:#1D9E75;color:#fff;border-color:#0F6E56;}
+  .rnd-btn.down.selected{background:#D85A30;color:#fff;border-color:#993C1D;}
+  .result-area{background:#eef9f4;border:0.5px solid #9FE1CB;border-radius:12px;padding:16px;margin-top:4px;}
+  .mat-results{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
+  .mat-result-card{background:#fff;border:0.5px solid rgba(0,0,0,0.1);border-radius:8px;padding:10px 14px;}
+  .mat-result-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;}
+  .mat-result-name{font-size:13px;font-weight:600;color:#1a1a1a;}
+  .mat-result-price{font-size:24px;font-weight:600;}
+  .price-up{color:#1D9E75;}
+  .price-down{color:#D85A30;}
+  .price-neutral{color:#1a1a1a;}
+  .mat-result-sub{font-size:11px;color:#888;}
+  .haul-result-card{background:#fff;border:0.5px solid rgba(0,0,0,0.1);border-radius:8px;padding:10px 14px;margin-bottom:12px;}
+  .bk{display:flex;flex-direction:column;gap:5px;border-top:0.5px solid rgba(0,0,0,0.1);padding-top:12px;}
+  .bk-row{display:flex;justify-content:space-between;font-size:13px;color:#666;}
+  .bk-sep{height:0.5px;background:rgba(0,0,0,0.08);margin:4px 0;}
+  .bk-row.strong{font-size:13px;font-weight:600;color:#1a1a1a;}
+  .bk-row.highlight-up{font-size:14px;font-weight:600;color:#1D9E75;border-top:0.5px solid rgba(0,0,0,0.1);padding-top:8px;margin-top:2px;}
+  .bk-row.highlight-down{font-size:14px;font-weight:600;color:#D85A30;border-top:0.5px solid rgba(0,0,0,0.1);padding-top:8px;margin-top:2px;}
+  .bk-row.highlight-neutral{font-size:14px;font-weight:600;color:#0F6E56;border-top:0.5px solid rgba(0,0,0,0.1);padding-top:8px;margin-top:2px;}
+  .broker-note{font-size:11px;color:#666;margin-top:6px;padding:6px 8px;background:#f5f4f0;border-radius:6px;border:0.5px solid rgba(0,0,0,0.1);}
+  .script-section{margin-top:12px;border-top:0.5px solid rgba(0,0,0,0.1);padding-top:12px;}
+  .stabs{display:flex;gap:6px;margin-bottom:8px;}
+  .stab{flex:1;height:32px;border:0.5px solid rgba(0,0,0,0.15);border-radius:8px;background:transparent;color:#666;font-size:12px;cursor:pointer;}
+  .stab.active.int{background:#185FA5;color:white;border-color:#185FA5;}
+  .stab.active.ext{background:#0F6E56;color:white;border-color:#0F6E56;}
+  .script-box{background:#fff;border:0.5px solid rgba(0,0,0,0.12);border-radius:8px;padding:12px 14px;font-size:12px;color:#1a1a1a;line-height:1.65;white-space:pre-wrap;word-break:break-word;margin-bottom:8px;min-height:80px;font-family:'Menlo','Courier New',monospace;}
+  .copy-btn{width:100%;height:40px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all 0.15s;}
+  .copy-btn.int{border:1.5px solid #185FA5;color:#185FA5;background:transparent;}
+  .copy-btn.ext{border:1.5px solid #0F6E56;color:#0F6E56;background:transparent;}
+  .copy-btn.copied{background:#1D9E75;color:white;border-color:#1D9E75;}
+  .implied-margins{display:flex;gap:8px;margin-top:8px;}
+  .im-chip{flex:1;background:#fff;border:0.5px solid rgba(0,0,0,0.1);border-radius:8px;padding:8px 10px;text-align:center;}
+  .im-chip-label{font-size:11px;color:#666;}
+  .im-chip-val{font-size:15px;font-weight:600;color:#1a1a1a;}
+  .disabled{opacity:0.35;pointer-events:none;}
+</style>
+</head>
+<body>
+
+<h1>Quote Calculator</h1>
+
+<div class="card">
+  <div class="card-title">Unit of measure</div>
+  <div class="field">
+    <select id="uom">
+      <option value="ton">Per ton</option>
+      <option value="cy">Per cubic yard (CY)</option>
+      <option value="load">Per load</option>
+    </select>
+  </div>
+</div>
+
+<div class="card">
+  <div class="haul-toggle-row">
+    <label class="toggle"><input type="checkbox" id="haul-on" checked><span class="tog-sl"></span></label>
+    <span style="font-size:14px;font-weight:600;">Hauling</span>
+  </div>
+  <div id="haul-fields">
+    <div class="field" style="margin-bottom:8px;">
+      <label>Haul cost — what you pay the truck ($)</label>
+      <input type="number" id="haul-cost" min="0" step="0.01" placeholder="0.00" inputmode="decimal">
+    </div>
+    <div class="margin-block">
+      <div class="margin-slider-row">
+        <span class="margin-label">Add'l margin</span>
+        <input type="range" id="haul-margin" min="0" max="50" step="1" value="10">
+        <span class="margin-val" id="haul-margin-disp">10%</span>
+      </div>
+      <div class="nudge-row">
+        <button class="nudge-btn minus" data-target="haul-margin" data-disp="haul-margin-disp" data-min="0" data-max="50">&#8722;</button>
+        <button class="nudge-btn plus"  data-target="haul-margin" data-disp="haul-margin-disp" data-min="0" data-max="50">&#43;</button>
+      </div>
+    </div>
+    <div class="broker-note" id="broker-note" style="display:none;"></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">Materials</div>
+  <div id="mat-list"></div>
+  <button class="add-btn" id="add-mat-btn">+ Add another material (same haul)</button>
+</div>
+
+<div class="card">
+  <div class="card-title">Output mode</div>
+  <div class="mode-tabs">
+    <button class="tab active" data-mode="margin">Margin-based</button>
+    <button class="tab" data-mode="target">Target price</button>
+  </div>
+  <div id="mode-margin">
+    <div style="font-size:12px;color:#666;margin-bottom:4px;">Rounding</div>
+    <div class="rnd-row">
+      <button class="rnd-btn up"   data-val="0.5" data-dir="up">+$0.50</button>
+      <button class="rnd-btn up"   data-val="1"   data-dir="up">+$1.00</button>
+      <div class="rnd-divider"></div>
+      <button class="rnd-btn down" data-val="0.5" data-dir="down">−$0.50</button>
+      <button class="rnd-btn down" data-val="1"   data-dir="down">−$1.00</button>
+    </div>
+  </div>
+  <div id="mode-target" style="display:none;">
+    <div class="field">
+      <label>Target all-in price ($)</label>
+      <input type="number" id="target-price" min="0" step="0.5" placeholder="e.g. 34.00" inputmode="decimal">
+    </div>
+  </div>
+</div>
+
+<div class="result-area" id="result-area" style="display:none;">
+  <div style="font-size:12px;color:#555;margin-bottom:8px;">Quoted prices per <span id="res-uom">ton</span></div>
+  <div class="mat-results" id="mat-results"></div>
+  <div class="haul-result-card" id="haul-result-card" style="display:none;">
+    <div class="mat-result-top">
+      <span class="mat-result-name">Hauling</span>
+      <span class="mat-result-price price-neutral" id="haul-sell-disp">—</span>
+    </div>
+    <div class="mat-result-sub" id="haul-result-sub"></div>
+  </div>
+  <div class="bk" id="bk"></div>
+  <div id="target-implied" style="display:none;margin-top:10px;">
+    <div style="font-size:12px;color:#666;text-align:center;margin-bottom:6px;">Implied margins at target price</div>
+    <div class="implied-margins" id="implied-chips"></div>
+  </div>
+  <div class="script-section">
+    <div style="font-size:13px;font-weight:600;color:#555;margin-bottom:8px;">Share this quote</div>
+    <div class="field" style="margin-bottom:8px;">
+      <label>Customer name (optional)</label>
+      <input type="text" id="customer-name" placeholder="e.g. ABC Paving">
+    </div>
+    <div class="stabs">
+      <button class="stab active int" data-stab="internal">Internal</button>
+      <button class="stab ext" data-stab="external">Customer-facing</button>
+    </div>
+    <div class="script-box" id="script-box"></div>
+    <button class="copy-btn int" id="copy-btn">
+      <span>&#x2398;</span><span id="copy-label">Copy internal script</span>
+    </button>
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const BROKER=0.10;
+let roundTo=1,roundDir='up',mode='margin',scriptTab='internal';
+let matIdCounter=0,materials=[],lastCalc={};
+const uomLabel={ton:'ton',cy:'CY',load:'load'};
+const fmt=n=>'$'+n.toFixed(2);
+const fmtR=n=>'$'+n.toFixed(2);
+
+function applyRound(v){return roundDir==='up'?Math.ceil(v/roundTo)*roundTo:Math.floor(v/roundTo)*roundTo;}
+function priceClass(){if(mode!=='margin')return'price-neutral';return roundDir==='up'?'price-up':'price-down';}
+function hlClass(){if(mode!=='margin')return'highlight-neutral';return roundDir==='up'?'highlight-up':'highlight-down';}
+function calcHaulSell(c,pct){
+  if(c<=0)return 0;
+  const net=c*(1-BROKER),m=pct/100;
+  return m>=1?net*100:net/(1-m);
+}
+function setActiveRnd(btn){
+  document.querySelectorAll('.rnd-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  roundTo=parseFloat(btn.dataset.val);
+  roundDir=btn.dataset.dir;
+}
+function createMat(){return{id:'m'+(++matIdCounter),type:'',cost:0,tax:6.5,taxOn:true,margin:15};}
+
+function matTaxRowHTML(m){
+  return`<div class="tax-row">
+    <div class="tax-input-wrap field">
+      <label>Tax rate (%)</label>
+      <input type="number" data-id="${m.id}" data-f="tax" min="0" step="0.1" value="${m.tax}" inputmode="decimal" ${m.taxOn?'':'disabled style="opacity:0.4;"'}>
+    </div>
+    <div class="tax-toggle-wrap">
+      <span class="tax-toggle-label">No tax</span>
+      <label class="toggle" style="width:32px;height:18px;">
+        <input type="checkbox" data-id="${m.id}" data-f="taxOff" ${m.taxOn?'':'checked'}>
+        <span class="tog-sl"></span>
+      </label>
+    </div>
+  </div>`;
+}
+
+function renderMats(){
+  const list=$('mat-list');
+  list.innerHTML='';
+  materials.forEach((m,i)=>{
+    const did='mv-'+m.id;
+    const div=document.createElement('div');
+    div.className='mat-block';
+    div.innerHTML=`
+      <div class="mat-block-header">
+        <span class="mat-block-title">Material ${i+1}</span>
+        ${materials.length>1?`<button class="remove-btn" data-id="${m.id}">Remove</button>`:''}
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>Material type (optional)</label>
+          <input type="text" data-id="${m.id}" data-f="type" placeholder="e.g. #57 Stone" value="${m.type}">
+        </div>
+        <div class="field" style="justify-content:flex-end;">${matTaxRowHTML(m)}</div>
+      </div>
+      <div class="field" style="margin-bottom:6px;">
+        <label>Material cost ($)</label>
+        <input type="number" data-id="${m.id}" data-f="cost" min="0" step="0.01" placeholder="0.00" value="${m.cost||''}" inputmode="decimal">
+      </div>
+      <div class="margin-block">
+        <div class="margin-slider-row">
+          <span class="margin-label">Margin</span>
+          <input type="range" data-id="${m.id}" data-f="margin" min="0" max="60" step="1" value="${m.margin}">
+          <span class="margin-val" id="${did}">${m.margin}%</span>
+        </div>
+        <div class="nudge-row">
+          <button class="nudge-btn minus" data-id="${m.id}" data-f="margin-nudge" data-disp="${did}" data-min="0" data-max="60">&#8722;</button>
+          <button class="nudge-btn plus"  data-id="${m.id}" data-f="margin-nudge" data-disp="${did}" data-min="0" data-max="60">&#43;</button>
+        </div>
+      </div>`;
+    list.appendChild(div);
+  });
+
+  list.querySelectorAll('input[type=range]').forEach(el=>{
+    if(el.dataset.f!=='margin')return;
+    el.addEventListener('input',function(){
+      const mat=materials.find(m=>m.id===this.dataset.id);
+      if(mat){mat.margin=parseInt(this.value);$('mv-'+this.dataset.id).textContent=mat.margin+'%';}
+      calc();
+    });
+  });
+  list.querySelectorAll('.nudge-btn').forEach(el=>{
+    el.addEventListener('click',function(){
+      const mat=materials.find(m=>m.id===this.dataset.id);
+      if(!mat)return;
+      const isPlus=this.classList.contains('plus');
+      const min=parseInt(this.dataset.min||0),max=parseInt(this.dataset.max||60);
+      mat.margin=Math.min(max,Math.max(min,mat.margin+(isPlus?1:-1)));
+      const sl=list.querySelector(`input[type=range][data-id="${mat.id}"][data-f="margin"]`);
+      if(sl)sl.value=mat.margin;
+      $(this.dataset.disp).textContent=mat.margin+'%';
+      calc();
+    });
+  });
+  list.querySelectorAll('input[data-f="taxOff"]').forEach(el=>{
+    el.addEventListener('change',function(){
+      const mat=materials.find(m=>m.id===this.dataset.id);
+      if(!mat)return;
+      mat.taxOn=!this.checked;
+      renderMats();calc();
+    });
+  });
+  list.querySelectorAll('input[type=text],input[type=number]').forEach(el=>{
+    if(el.dataset.f==='taxOff'||el.dataset.f==='margin')return;
+    el.addEventListener('input',function(){
+      const mat=materials.find(m=>m.id===this.dataset.id);
+      if(!mat)return;
+      const f=this.dataset.f;
+      if(f==='cost'||f==='tax')mat[f]=parseFloat(this.value)||0;
+      else mat[f]=this.value;
+      calc();
+    });
+  });
+  list.querySelectorAll('.remove-btn').forEach(btn=>{
+    btn.addEventListener('click',function(){
+      materials=materials.filter(m=>m.id!==this.dataset.id);
+      renderMats();calc();
+    });
+  });
+}
+
+function calc(){
+  const uom=$('uom').value;
+  const haulOn=$('haul-on').checked;
+  const haulCost=parseFloat($('haul-cost').value)||0;
+  const haulSlider=parseInt($('haul-margin').value)||0;
+  const targetPrice=parseFloat($('target-price').value)||0;
+  const haulSell=haulOn?calcHaulSell(haulCost,haulSlider):0;
+  const brokerKeep=haulOn&&haulCost>0?haulCost*BROKER:0;
+  const netPayout=haulOn&&haulCost>0?haulCost*(1-BROKER):0;
+  const haulTotalMarginPct=haulSell>0?((haulSell-netPayout)/haulSell*100):0;
+
+  if(haulOn&&haulCost>0){
+    $('broker-note').style.display='block';
+    $('broker-note').textContent='Broker fee (10%): '+fmt(brokerKeep)+' kept | Net payout: '+fmt(netPayout)+' | Sell: '+fmt(haulSell)+' | Total margin: '+haulTotalMarginPct.toFixed(1)+'%';
+  } else $('broker-note').style.display='none';
+
+  const matData=materials.map(m=>{
+    const et=m.taxOn?m.tax:0;
+    const taxed=m.cost>0?m.cost*(1+et/100):0;
+    const sell=m.cost>0?taxed/(1-m.margin/100):0;
+    const raw=sell+haulSell;
+    return{...m,effectiveTax:et,taxed,sell,marginAmt:sell-taxed,raw,rounded:applyRound(raw)};
+  });
+
+  const hasData=matData.some(m=>m.cost>0)||(haulOn&&haulCost>0);
+  if(!hasData){$('result-area').style.display='none';return;}
+  $('result-area').style.display='block';
+  $('res-uom').textContent=uomLabel[uom];
+
+  const pc=priceClass();
+  const matRes=$('mat-results');
+  matRes.innerHTML='';
+  matData.forEach((m,i)=>{
+    const card=document.createElement('div');
+    card.className='mat-result-card';
+    let priceStr,subStr,pClass;
+    if(mode==='margin'){
+      const disp=m.cost>0?(haulOn?m.rounded:applyRound(m.sell)):0;
+      priceStr=m.cost>0?fmtR(disp):'—';
+      pClass=m.cost>0?pc:'price-neutral';
+      const dl=roundDir==='up'?'rounded up':'rounded down';
+      const tl=m.taxOn?m.tax.toFixed(1)+'% tax':'no tax';
+      subStr=m.cost>0?`${m.type||'Material '+(i+1)} + haul, ${dl} | mat: ${fmt(m.sell)} (${tl})${haulOn?' + haul: '+fmt(haulSell):''}`:' ';
+    } else {
+      const disp=targetPrice>0&&m.cost>0?targetPrice:m.raw;
+      priceStr=m.cost>0?fmt(disp):'—';pClass='price-neutral';
+      subStr=m.cost>0?`${targetPrice>0?'Target':'Raw'} | mat: ${fmt(m.sell)}${haulOn?' + haul: '+fmt(haulSell):''}`:' ';
+    }
+    card.innerHTML=`<div class="mat-result-top"><span class="mat-result-name">${m.type||(materials.length>1?'Material '+(i+1):'Material')}</span><span class="mat-result-price ${pClass}">${priceStr}</span></div><div class="mat-result-sub">${subStr}</div>`;
+    matRes.appendChild(card);
+  });
+
+  if(haulOn&&haulCost>0){
+    $('haul-result-card').style.display='block';
+    $('haul-sell-disp').textContent=fmt(haulSell);
+    $('haul-result-sub').textContent=`Pay truck: ${fmt(haulCost)} | Broker: ${fmt(brokerKeep)} | Net payout: ${fmt(netPayout)} | Total margin: ${haulTotalMarginPct.toFixed(1)}%`;
+  } else $('haul-result-card').style.display='none';
+
+  const bk=$('bk');bk.innerHTML='';
+  const addRow=(l,v,c='')=>{const r=document.createElement('div');r.className='bk-row'+(c?' '+c:'');r.innerHTML=`<span>${l}</span><span>${v}</span>`;bk.appendChild(r);};
+  const addSep=()=>{const s=document.createElement('div');s.className='bk-sep';bk.appendChild(s);};
+
+  if(haulOn&&haulCost>0){addRow('Haul cost',fmt(haulCost));addRow('Haul sell',fmt(haulSell),'strong');addSep();}
+  const activeMats=matData.filter(m=>m.cost>0);
+  activeMats.forEach((m,i)=>{
+    const lbl=m.type||(activeMats.length>1?'Material '+(i+1):'Material');
+    const tl=m.taxOn?m.effectiveTax.toFixed(1)+'% tax':'no tax';
+    addRow(lbl+' cost ('+tl+')',fmt(m.cost));addRow(lbl+' sell',fmt(m.sell),'strong');addSep();
+  });
+
+  const hl=hlClass(),dl=roundDir==='up'?'rounded up':'rounded down';
+  if(mode==='margin'){
+    activeMats.forEach((m,i)=>{
+      const lbl=m.type||(activeMats.length>1?'Material '+(i+1):'Material');
+      addRow((activeMats.length>1?lbl+' a':'A')+'ll-in ('+dl+')',fmtR(haulOn?m.rounded:applyRound(m.sell)),hl);
+    });
+  } else if(targetPrice>0){
+    activeMats.forEach((m,i)=>{
+      const lbl=m.type||(activeMats.length>1?'Material '+(i+1):'Material');
+      addRow((activeMats.length>1?lbl+' t':'T')+'arget price',fmt(targetPrice),'highlight-neutral');
+    });
+    const tc=(activeMats[0]?.taxed||0)+(haulOn?netPayout:0);
+    const om=tc>0?((targetPrice-tc)/targetPrice*100):0;
+    $('target-implied').style.display='block';
+    $('implied-chips').innerHTML=`<div class="im-chip"><div class="im-chip-label">Overall margin</div><div class="im-chip-val">${om.toFixed(1)}%</div></div>`;
+  } else {
+    activeMats.forEach((m,i)=>{
+      const lbl=m.type||(activeMats.length>1?'Material '+(i+1):'Material');
+      addRow((activeMats.length>1?lbl+' r':'R')+'aw total',fmt(m.raw),'highlight-neutral');
+    });
+    $('target-implied').style.display='none';
+  }
+
+  lastCalc={uom,matData,activeMats,haulOn,haulCost,haulSell,brokerKeep,netPayout,haulSlider,haulTotalMarginPct,mode,targetPrice};
+  updateScript();
+}
+
+function buildInternal(){
+  const v=lastCalc;if(!v.uom)return'';
+  const d=new Date(),ds=(d.getMonth()+1)+'/'+d.getDate()+'/'+d.getFullYear();
+  const cust=$('customer-name').value.trim();
+  const dl=roundDir==='up'?'rounded up':'rounded down';
+  let L=['--- INTERNAL QUOTE ---','Date: '+ds];
+  if(cust)L.push('Customer: '+cust);
+  L.push('Unit: per '+uomLabel[v.uom],'');
+  if(v.haulOn&&v.haulCost>0)L.push('HAULING','  Cost:   '+fmt(v.haulCost),'  Sell:   '+fmt(v.haulSell),'');
+  (v.activeMats||[]).forEach((m,i)=>{
+    const lbl=m.type||((v.activeMats.length>1)?'Material '+(i+1):'Material');
+    const tl=m.taxOn?m.effectiveTax.toFixed(1)+'% tax':'no tax';
+    L.push(lbl.toUpperCase()+' ('+tl+')','  Cost:   '+fmt(m.cost),'  Sell:   '+fmt(m.sell),'');
+  });
+  (v.activeMats||[]).forEach((m,i)=>{
+    const lbl=m.type||((v.activeMats.length>1)?'Material '+(i+1):'Material');
+    if(v.mode==='margin')L.push((v.activeMats.length>1?lbl+' all':'All')+'-in: '+fmtR(v.haulOn?m.rounded:applyRound(m.sell))+' / '+uomLabel[v.uom]+' ('+dl+')');
+    else L.push((v.activeMats.length>1?lbl+' t':'T')+'arget: '+(v.targetPrice>0?fmt(v.targetPrice):fmt(m.raw))+' / '+uomLabel[v.uom]);
+  });
+  L.push('','--- Allied Trucking of Palm Beach ---');
+  return L.join('\n');
+}
+
+function buildExternal(){
+  const v=lastCalc;if(!v.uom)return'';
+  const cust=$('customer-name').value.trim(),uom=uomLabel[v.uom];
+  const am=v.activeMats||[];
+  let msg=(cust?'Hi '+cust+',':'Hi,')+'\n\n';
+  if(am.length>1){
+    msg+='We\'re pleased to offer the following quotes, delivered:\n\n';
+    am.forEach((m,i)=>{
+      const lbl=m.type||'Material '+(i+1);
+      const all=v.mode==='margin'?(v.haulOn?m.rounded:applyRound(m.sell)):(v.targetPrice>0?v.targetPrice:m.raw);
+      msg+='  '+lbl+':  '+fmtR(all)+' / '+uom+' (material + haul, tax included)\n';
+    });
+    if(v.haulOn&&v.haulCost>0)msg+='\nHauling is shared across all materials at '+fmt(v.haulSell)+' / '+uom+'.\n';
+  } else if(am.length===1){
+    const m=am[0],lbl=m.type||'material';
+    const all=v.mode==='margin'?(v.haulOn?m.rounded:applyRound(m.sell)):(v.targetPrice>0?v.targetPrice:m.raw);
+    if(v.haulOn&&v.haulCost>0){
+      msg+='We\'re pleased to offer '+lbl+', delivered, at '+fmtR(all)+' / '+uom+' — all-inclusive (material, haul & tax).\n';
+      msg+='\n  Material:  '+fmt(m.sell)+' / '+uom+(m.taxOn?' (tax included)':'')+'\n';
+      msg+='  Hauling:   '+fmt(v.haulSell)+' / '+uom+'\n  All-in:    '+fmtR(all)+' / '+uom+'\n';
+    } else msg+='We\'re pleased to offer '+lbl+' at '+fmtR(all)+' / '+uom+(m.taxOn?' (tax included)':'')+'.\n';
+  } else if(v.haulOn&&v.haulCost>0)msg+='We\'re pleased to offer hauling services at '+fmt(v.haulSell)+' / '+uom+'.\n';
+  msg+='\nPlease don\'t hesitate to reach out with any questions. We appreciate your business!\n\n— Allied Trucking of Palm Beach';
+  return msg;
+}
+
+function updateScript(){
+  $('script-box').textContent=scriptTab==='internal'?buildInternal():buildExternal();
+  const btn=$('copy-btn'),lbl=$('copy-label');
+  btn.className='copy-btn '+(scriptTab==='internal'?'int':'ext');
+  lbl.textContent=scriptTab==='internal'?'Copy internal script':'Copy customer script';
+}
+
+$('add-mat-btn').addEventListener('click',()=>{materials.push(createMat());renderMats();calc();});
+$('haul-on').addEventListener('change',function(){$('haul-fields').className=this.checked?'':'disabled';calc();});
+$('haul-margin').addEventListener('input',function(){$('haul-margin-disp').textContent=this.value+'%';calc();});
+document.querySelectorAll('.nudge-btn[data-target]').forEach(btn=>{
+  btn.addEventListener('click',function(){
+    const sl=$(this.dataset.target),dp=$(this.dataset.disp);
+    const min=parseInt(this.dataset.min||0),max=parseInt(this.dataset.max||50);
+    let v=Math.min(max,Math.max(min,(parseInt(sl.value)||0)+(this.classList.contains('plus')?1:-1)));
+    sl.value=v;dp.textContent=v+'%';calc();
+  });
+});
+['haul-cost','uom','target-price'].forEach(id=>{$(id).addEventListener('input',calc);});
+document.querySelectorAll('.rnd-btn').forEach(btn=>{btn.addEventListener('click',function(){setActiveRnd(this);calc();});});
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click',function(){
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    this.classList.add('active');mode=this.dataset.mode;
+    $('mode-margin').style.display=mode==='margin'?'block':'none';
+    $('mode-target').style.display=mode==='target'?'block':'none';
+    calc();
+  });
+});
+document.querySelectorAll('.stab').forEach(btn=>{
+  btn.addEventListener('click',function(){
+    document.querySelectorAll('.stab').forEach(b=>b.classList.remove('active'));
+    this.classList.add('active');scriptTab=this.dataset.stab;updateScript();
+  });
+});
+$('copy-btn').addEventListener('click',function(){
+  navigator.clipboard.writeText($('script-box').textContent).then(()=>{
+    this.classList.add('copied');$('copy-label').textContent='Copied!';
+    setTimeout(()=>{this.classList.remove('copied');$('copy-label').textContent=scriptTab==='internal'?'Copy internal script':'Copy customer script';},2000);
+  });
+});
+$('customer-name').addEventListener('input',updateScript);
+
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+
+materials.push(createMat());
+renderMats();
+const def=document.querySelector('.rnd-btn[data-val="1"][data-dir="up"]');
+if(def)setActiveRnd(def);
+</script>
+</body>
+</html>
