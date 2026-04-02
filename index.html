@@ -130,7 +130,6 @@
 <div class="card">
   <div class="card-title">Materials</div>
   <div id="mat-list"></div>
-  <button class="add-btn" id="add-mat-btn">+ Add another material (same haul)</button>
 </div>
 
 <div class="card">
@@ -214,6 +213,7 @@ function setActiveRnd(btn){
 }
 function createMat(){return{id:'m'+(++matIdCounter),type:'',cost:0,tax:6.5,taxOn:true,margin:15};}
 
+
 function matTaxRowHTML(m){
   return`<div class="tax-row">
     <div class="tax-input-wrap field">
@@ -239,8 +239,7 @@ function renderMats(){
     div.className='mat-block';
     div.innerHTML=`
       <div class="mat-block-header">
-        <span class="mat-block-title">Material ${i+1}</span>
-        ${materials.length>1?`<button class="remove-btn" data-id="${m.id}">Remove</button>`:''}
+        <span class="mat-block-title">Material</span>
       </div>
       <div class="row2">
         <div class="field">
@@ -468,7 +467,6 @@ function updateScript(){
   lbl.textContent=scriptTab==='internal'?'Copy internal script':'Copy customer script';
 }
 
-$('add-mat-btn').addEventListener('click',()=>{materials.push(createMat());renderMats();calc();});
 $('haul-margin').addEventListener('input',function(){$('haul-margin-disp').textContent=this.value+'%';calc();});
 document.querySelectorAll('.nudge-btn[data-target]').forEach(btn=>{
   btn.addEventListener('click',function(){
