@@ -11,93 +11,84 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
 <style>
-  *{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f4f0;color:#1a1a1a;padding:12px;max-width:580px;margin:0 auto;padding-bottom:40px;}
-  h1{font-size:17px;font-weight:600;color:#1a1a1a;margin-bottom:14px;padding:4px 0;}
-  .card{background:#ffffff;border:0.5px solid rgba(0,0,0,0.12);border-radius:12px;padding:14px 16px;margin-bottom:10px;}
-  .card-title{font-size:14px;font-weight:600;color:#1a1a1a;margin-bottom:12px;}
-  .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
-  .field{display:flex;flex-direction:column;gap:4px;}
-  .field label{font-size:12px;color:#666;}
-  .field input,.field select{height:38px;padding:0 10px;border:0.5px solid rgba(0,0,0,0.15);border-radius:8px;background:#f5f4f0;color:#1a1a1a;font-size:14px;width:100%;-webkit-appearance:none;appearance:none;}
-  .field input:focus,.field select:focus{outline:2px solid #1D9E75;outline-offset:-1px;}
-  .toggle{position:relative;width:36px;height:20px;flex-shrink:0;}
-  .toggle input{opacity:0;width:0;height:0;}
-  .tog-sl{position:absolute;cursor:pointer;inset:0;background:#ccc;border-radius:20px;transition:background 0.2s;}
-  .tog-sl:before{content:'';position:absolute;width:14px;height:14px;left:3px;top:3px;background:white;border-radius:50%;transition:transform 0.2s;}
-  .toggle input:checked+.tog-sl{background:#1D9E75;}
-  .toggle input:checked+.tog-sl:before{transform:translateX(16px);}
-  .haul-toggle-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
-  .mat-block{border:0.5px solid rgba(0,0,0,0.1);border-radius:8px;padding:12px;margin-bottom:8px;background:#f9f9f7;}
-  .mat-block-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
-  .mat-block-title{font-size:13px;font-weight:600;color:#1a1a1a;}
-  .remove-btn{height:24px;padding:0 10px;border:0.5px solid rgba(0,0,0,0.15);border-radius:6px;background:transparent;color:#666;font-size:11px;cursor:pointer;}
-  .tax-row{display:flex;gap:6px;align-items:flex-end;}
-  .tax-input-wrap{flex:1;}
-  .tax-toggle-wrap{display:flex;flex-direction:column;gap:4px;align-items:center;flex-shrink:0;padding-bottom:2px;}
-  .tax-toggle-label{font-size:10px;color:#666;white-space:nowrap;}
-  .margin-block{margin-top:8px;}
-  .margin-slider-row{display:flex;align-items:center;gap:10px;}
-  .margin-slider-row input[type=range]{flex:1;accent-color:#1D9E75;}
-  .margin-val{font-size:13px;font-weight:600;min-width:38px;text-align:right;color:#1a1a1a;}
-  .margin-label{font-size:12px;color:#666;white-space:nowrap;}
-  .nudge-row{display:flex;gap:4px;margin-top:5px;}
-  .nudge-btn{flex:1;height:28px;border:0.5px solid rgba(0,0,0,0.15);border-radius:7px;background:#f5f4f0;color:#333;font-size:18px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-  .nudge-btn:active{background:#e0e0dc;}
-  .add-btn{width:100%;height:36px;border:1px dashed rgba(0,0,0,0.2);border-radius:8px;background:transparent;color:#666;font-size:13px;cursor:pointer;margin-top:2px;}
-  .add-btn:active{background:#f0f0ec;}
-  .mode-tabs{display:flex;gap:6px;margin-bottom:10px;}
-  .tab{flex:1;height:36px;border:0.5px solid rgba(0,0,0,0.15);border-radius:8px;background:transparent;color:#666;font-size:13px;cursor:pointer;}
-  .tab.active{background:#1D9E75;color:white;border-color:#1D9E75;}
-  .rnd-row{display:flex;gap:6px;margin-top:6px;align-items:center;}
-  .rnd-divider{width:1px;height:20px;background:rgba(0,0,0,0.12);flex-shrink:0;}
-  .rnd-btn{flex:1;height:36px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid rgba(0,0,0,0.15);background:#f5f4f0;color:#888;transition:all 0.15s;}
-  .rnd-btn.up.selected{background:#1D9E75;color:#fff;border-color:#0F6E56;}
-  .rnd-btn.down.selected{background:#D85A30;color:#fff;border-color:#993C1D;}
-  .result-area{background:#eef9f4;border:0.5px solid #9FE1CB;border-radius:12px;padding:16px;margin-top:4px;}
-  .mat-results{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
-  .mat-result-card{background:#fff;border:0.5px solid rgba(0,0,0,0.1);border-radius:8px;padding:10px 14px;}
-  .mat-result-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;}
-  .mat-result-name{font-size:13px;font-weight:600;color:#1a1a1a;}
-  .mat-result-price{font-size:24px;font-weight:600;}
-  .price-up{color:#1D9E75;}
-  .price-down{color:#D85A30;}
-  .price-neutral{color:#1a1a1a;}
-  .mat-result-sub{font-size:11px;color:#888;}
-  .haul-result-card{background:#fff;border:0.5px solid rgba(0,0,0,0.1);border-radius:8px;padding:10px 14px;margin-bottom:12px;}
-  .margin-table{width:100%;border-collapse:collapse;margin-top:12px;border-top:0.5px solid rgba(0,0,0,0.1);padding-top:12px;display:table;}
-  .margin-table th{font-size:11px;font-weight:600;color:#888;text-align:right;padding:6px 8px 4px;border-bottom:0.5px solid rgba(0,0,0,0.1);}
-  .margin-table th:first-child{text-align:left;}
-  .margin-table td{font-size:13px;color:#444;text-align:right;padding:5px 8px;}
-  .margin-table td:first-child{text-align:left;font-weight:600;color:#1a1a1a;}
-  .margin-table tr.combined-row td{font-weight:600;color:#1a1a1a;border-top:0.5px solid rgba(0,0,0,0.1);padding-top:8px;}
-  .margin-table tr.combined-row td:first-child{color:#1a1a1a;}
-  .margin-table td.neg{color:#D85A30;font-weight:600;}
-  .margin-table tr.combined-row.over-target td{color:#D85A30;}
-  .warning-banner{background:#FAECE7;border:1px solid #F0997B;border-radius:8px;padding:10px 14px;margin-top:10px;font-size:13px;color:#993C1D;font-weight:500;display:none;}
-  .bk-row.highlight-up{font-size:14px;font-weight:600;color:#1D9E75;border-top:0.5px solid rgba(0,0,0,0.1);padding-top:8px;margin-top:2px;display:flex;justify-content:space-between;}
-  .bk-row.highlight-down{font-size:14px;font-weight:600;color:#D85A30;border-top:0.5px solid rgba(0,0,0,0.1);padding-top:8px;margin-top:2px;display:flex;justify-content:space-between;}
-  .bk-row.highlight-neutral{font-size:14px;font-weight:600;color:#0F6E56;border-top:0.5px solid rgba(0,0,0,0.1);padding-top:8px;margin-top:2px;display:flex;justify-content:space-between;}
-  .broker-note{font-size:11px;color:#666;margin-top:6px;padding:6px 8px;background:#f5f4f0;border-radius:6px;border:0.5px solid rgba(0,0,0,0.1);}
-  .script-section{margin-top:12px;border-top:0.5px solid rgba(0,0,0,0.1);padding-top:12px;}
-  .stabs{display:flex;gap:6px;margin-bottom:8px;}
-  .stab{flex:1;height:32px;border:0.5px solid rgba(0,0,0,0.15);border-radius:8px;background:transparent;color:#666;font-size:12px;cursor:pointer;}
-  .stab.active.int{background:#185FA5;color:white;border-color:#185FA5;}
-  .stab.active.ext{background:#0F6E56;color:white;border-color:#0F6E56;}
-  .script-box{background:#fff;border:0.5px solid rgba(0,0,0,0.12);border-radius:8px;padding:12px 14px;font-size:12px;color:#1a1a1a;line-height:1.65;white-space:pre-wrap;word-break:break-word;margin-bottom:8px;min-height:80px;font-family:'Menlo','Courier New',monospace;}
-  .copy-btn{width:100%;height:40px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all 0.15s;}
-  .copy-btn.int{border:1.5px solid #185FA5;color:#185FA5;background:transparent;}
-  .copy-btn.ext{border:1.5px solid #0F6E56;color:#0F6E56;background:transparent;}
-  .copy-btn.copied{background:#1D9E75;color:white;border-color:#1D9E75;}
-  .implied-margins{display:flex;gap:8px;margin-top:8px;}
-  .im-chip{flex:1;background:#fff;border:0.5px solid rgba(0,0,0,0.1);border-radius:8px;padding:8px 10px;text-align:center;}
-  .im-chip-label{font-size:11px;color:#666;}
-  .im-chip-val{font-size:15px;font-weight:600;color:#1a1a1a;}
-  .disabled{opacity:0.35;pointer-events:none;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f4f0;color:#1a1a1a;padding:12px;max-width:580px;margin:0 auto;padding-bottom:40px;}
+h1{font-size:17px;font-weight:600;color:#1a1a1a;margin-bottom:14px;padding:4px 0;}
+.card{background:#fff;border:0.5px solid rgba(0,0,0,0.12);border-radius:12px;padding:14px 16px;margin-bottom:10px;}
+.card-title{font-size:14px;font-weight:600;color:#1a1a1a;margin-bottom:12px;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+.field{display:flex;flex-direction:column;gap:4px;}
+.field label{font-size:12px;color:#666;}
+.field input,.field select{height:38px;padding:0 10px;border:0.5px solid rgba(0,0,0,0.15);border-radius:8px;background:#f5f4f0;color:#1a1a1a;font-size:14px;width:100%;-webkit-appearance:none;appearance:none;}
+.field input:focus,.field select:focus{outline:2px solid #1D9E75;outline-offset:-1px;}
+.toggle{position:relative;width:36px;height:20px;flex-shrink:0;}
+.toggle input{opacity:0;width:0;height:0;}
+.tog-sl{position:absolute;cursor:pointer;inset:0;background:#ccc;border-radius:20px;transition:background 0.2s;}
+.tog-sl:before{content:'';position:absolute;width:14px;height:14px;left:3px;top:3px;background:white;border-radius:50%;transition:transform 0.2s;}
+.toggle input:checked+.tog-sl{background:#1D9E75;}
+.toggle input:checked+.tog-sl:before{transform:translateX(16px);}
+.mat-block{border:0.5px solid rgba(0,0,0,0.1);border-radius:8px;padding:12px;margin-bottom:8px;background:#f9f9f7;}
+.mat-block-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.mat-block-title{font-size:13px;font-weight:600;color:#1a1a1a;}
+.tax-row{display:flex;gap:6px;align-items:flex-end;}
+.tax-input-wrap{flex:1;}
+.tax-toggle-wrap{display:flex;flex-direction:column;gap:4px;align-items:center;flex-shrink:0;padding-bottom:2px;}
+.tax-toggle-label{font-size:10px;color:#666;white-space:nowrap;}
+.margin-block{margin-top:8px;}
+.margin-slider-row{display:flex;align-items:center;gap:10px;}
+.margin-slider-row input[type=range]{flex:1;accent-color:#1D9E75;}
+.margin-val{font-size:13px;font-weight:600;min-width:38px;text-align:right;color:#1a1a1a;}
+.margin-label{font-size:12px;color:#666;white-space:nowrap;}
+.nudge-row{display:flex;gap:4px;margin-top:5px;}
+.nudge-btn{flex:1;height:28px;border:0.5px solid rgba(0,0,0,0.15);border-radius:7px;background:#f5f4f0;color:#333;font-size:18px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.nudge-btn:active{background:#e0e0dc;}
+.mode-tabs{display:flex;gap:6px;margin-bottom:10px;}
+.tab{flex:1;height:36px;border:0.5px solid rgba(0,0,0,0.15);border-radius:8px;background:transparent;color:#666;font-size:13px;cursor:pointer;}
+.tab.active{background:#1D9E75;color:white;border-color:#1D9E75;}
+.rnd-row{display:flex;gap:6px;margin-top:6px;align-items:center;}
+.rnd-divider{width:1px;height:20px;background:rgba(0,0,0,0.12);flex-shrink:0;}
+.rnd-btn{flex:1;height:36px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid rgba(0,0,0,0.15);background:#f5f4f0;color:#888;transition:all 0.15s;}
+.rnd-btn.up.selected{background:#1D9E75;color:#fff;border-color:#0F6E56;}
+.rnd-btn.down.selected{background:#D85A30;color:#fff;border-color:#993C1D;}
+.result-area{background:#eef9f4;border:0.5px solid #9FE1CB;border-radius:12px;padding:16px;margin-top:4px;}
+.mat-results{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
+.mat-result-card{background:#fff;border:0.5px solid rgba(0,0,0,0.1);border-radius:8px;padding:10px 14px;}
+.mat-result-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;}
+.mat-result-name{font-size:13px;font-weight:600;color:#1a1a1a;}
+.mat-result-price{font-size:24px;font-weight:600;}
+.price-up{color:#1D9E75;}
+.price-down{color:#D85A30;}
+.price-neutral{color:#1a1a1a;}
+.mat-result-sub{font-size:11px;color:#888;}
+.haul-result-card{background:#fff;border:0.5px solid rgba(0,0,0,0.1);border-radius:8px;padding:10px 14px;margin-bottom:12px;}
+.broker-note{font-size:11px;color:#666;margin-top:6px;padding:6px 8px;background:#f5f4f0;border-radius:6px;border:0.5px solid rgba(0,0,0,0.1);}
+.margin-table{width:100%;border-collapse:collapse;margin-top:12px;}
+.margin-table th{font-size:11px;font-weight:600;color:#888;text-align:right;padding:6px 8px 4px;border-bottom:0.5px solid rgba(0,0,0,0.1);}
+.margin-table th:first-child{text-align:left;}
+.margin-table td{font-size:13px;color:#444;text-align:right;padding:5px 8px;}
+.margin-table td:first-child{text-align:left;font-weight:600;color:#1a1a1a;}
+.margin-table tr.combined-row td{font-weight:600;color:#1a1a1a;border-top:0.5px solid rgba(0,0,0,0.1);padding-top:8px;}
+.margin-table td.neg{color:#D85A30;font-weight:600;}
+.margin-table tr.combined-row.over-target td{color:#D85A30;}
+.allin-row{display:flex;justify-content:space-between;font-size:14px;font-weight:600;padding-top:10px;margin-top:6px;border-top:0.5px solid rgba(0,0,0,0.1);}
+.allin-row.up{color:#1D9E75;}
+.allin-row.down{color:#D85A30;}
+.allin-row.neutral{color:#0F6E56;}
+.warning-banner{background:#FAECE7;border:1px solid #F0997B;border-radius:8px;padding:10px 14px;margin-top:10px;font-size:13px;color:#993C1D;font-weight:500;display:none;}
+.script-section{margin-top:12px;border-top:0.5px solid rgba(0,0,0,0.1);padding-top:12px;}
+.stabs{display:flex;gap:6px;margin-bottom:8px;}
+.stab{flex:1;height:32px;border:0.5px solid rgba(0,0,0,0.15);border-radius:8px;background:transparent;color:#666;font-size:12px;cursor:pointer;}
+.stab.active.int{background:#185FA5;color:white;border-color:#185FA5;}
+.stab.active.ext{background:#0F6E56;color:white;border-color:#0F6E56;}
+.script-box{background:#fff;border:0.5px solid rgba(0,0,0,0.12);border-radius:8px;padding:12px 14px;font-size:12px;color:#1a1a1a;line-height:1.65;white-space:pre-wrap;word-break:break-word;margin-bottom:8px;min-height:80px;font-family:'Menlo','Courier New',monospace;}
+.copy-btn{width:100%;height:40px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all 0.15s;}
+.copy-btn.int{border:1.5px solid #185FA5;color:#185FA5;background:transparent;}
+.copy-btn.ext{border:1.5px solid #0F6E56;color:#0F6E56;background:transparent;}
+.copy-btn.copied{background:#1D9E75;color:white;border-color:#1D9E75;}
+.disabled{opacity:0.35;pointer-events:none;}
 </style>
 </head>
 <body>
-
 <h1>Quote Calculator</h1>
 
 <div class="card">
@@ -172,7 +163,7 @@
     </div>
     <div class="mat-result-sub" id="haul-result-sub"></div>
   </div>
-  <div id="bk" style="margin-top:4px;"></div>
+  <div id="bk"></div>
   <div class="warning-banner" id="warning-banner">Target price is below total cost — increase the target or reduce your costs.</div>
   <div class="script-section">
     <div style="font-size:13px;font-weight:600;color:#555;margin-bottom:8px;">Share this quote</div>
@@ -202,20 +193,21 @@ const fmtR=n=>'$'+n.toFixed(2);
 
 function applyRound(v){return roundDir==='up'?Math.ceil(v/roundTo)*roundTo:Math.floor(v/roundTo)*roundTo;}
 function priceClass(){if(mode!=='margin')return'price-neutral';return roundDir==='up'?'price-up':'price-down';}
-function hlClass(){if(mode!=='margin')return'highlight-neutral';return roundDir==='up'?'highlight-up':'highlight-down';}
+
 function calcHaulSell(c,pct){
   if(c<=0)return 0;
   const net=c*(1-BROKER),m=pct/100;
   return m>=1?net*100:net/(1-m);
 }
+
 function setActiveRnd(btn){
   document.querySelectorAll('.rnd-btn').forEach(b=>b.classList.remove('selected'));
   btn.classList.add('selected');
   roundTo=parseFloat(btn.dataset.val);
   roundDir=btn.dataset.dir;
 }
-function createMat(){return{id:'m'+(++matIdCounter),type:'',cost:0,tax:6.5,taxOn:true,margin:15};}
 
+function createMat(){return{id:'m'+(++matIdCounter),type:'',cost:0,tax:6.5,taxOn:true,margin:15};}
 
 function matTaxRowHTML(m){
   return`<div class="tax-row">
@@ -236,14 +228,12 @@ function matTaxRowHTML(m){
 function renderMats(){
   const list=$('mat-list');
   list.innerHTML='';
-  materials.forEach((m,i)=>{
+  materials.forEach(m=>{
     const did='mv-'+m.id;
     const div=document.createElement('div');
     div.className='mat-block';
     div.innerHTML=`
-      <div class="mat-block-header">
-        <span class="mat-block-title">Material</span>
-      </div>
+      <div class="mat-block-header"><span class="mat-block-title">Material</span></div>
       <div class="row2">
         <div class="field">
           <label>Material type (optional)</label>
@@ -309,12 +299,6 @@ function renderMats(){
       calc();
     });
   });
-  list.querySelectorAll('.remove-btn').forEach(btn=>{
-    btn.addEventListener('click',function(){
-      materials=materials.filter(m=>m.id!==this.dataset.id);
-      renderMats();calc();
-    });
-  });
 }
 
 function calc(){
@@ -323,96 +307,95 @@ function calc(){
   const haulOn=haulCost>0;
   const haulSlider=parseInt($('haul-margin').value)||0;
   const targetPrice=parseFloat($('target-price').value)||0;
+
   const haulSell=haulOn?calcHaulSell(haulCost,haulSlider):0;
-  const brokerKeep=haulOn&&haulCost>0?haulCost*BROKER:0;
-  const netPayout=haulOn&&haulCost>0?haulCost*(1-BROKER):0;
+  const brokerKeep=haulOn?haulCost*BROKER:0;
+  const netPayout=haulOn?haulCost*(1-BROKER):0;
   const haulTotalMarginPct=haulSell>0?((haulSell-netPayout)/haulSell*100):0;
 
-  const activeMats=matData.filter(m=>m.cost>0);
-
-  if(haulOn&&haulCost>0){
+  if(haulOn){
     $('broker-note').style.display='block';
     $('broker-note').textContent='Broker fee (10%): '+fmt(brokerKeep)+' kept | Net payout: '+fmt(netPayout)+' | Sell: '+fmt(haulSell)+' | Total margin: '+haulTotalMarginPct.toFixed(1)+'%';
-  } else $('broker-note').style.display='none';
+  } else {
+    $('broker-note').style.display='none';
+  }
 
   const matData=materials.map(m=>{
     const et=m.taxOn?m.tax:0;
     const taxed=m.cost>0?m.cost*(1+et/100):0;
-    const sell=m.cost>0?taxed/(1-m.margin/100):0;
+    const sell=m.cost>0&&m.margin<100?taxed/(1-m.margin/100):0;
     const raw=sell+haulSell;
     return{...m,effectiveTax:et,taxed,sell,marginAmt:sell-taxed,raw,rounded:applyRound(raw)};
   });
 
-  const hasData=matData.some(m=>m.cost>0)||(haulOn&&haulCost>0);
+  const activeMats=matData.filter(m=>m.cost>0);
+  const hasMat=activeMats.length>0;
+  const mat=hasMat?activeMats[0]:null;
+
+  const hasData=hasMat||haulOn;
   if(!hasData){$('result-area').style.display='none';return;}
   $('result-area').style.display='block';
   $('res-uom').textContent=uomLabel[uom];
 
+  // --- quoted price cards ---
   const pc=priceClass();
   const matRes=$('mat-results');
   matRes.innerHTML='';
-  matData.forEach((m,i)=>{
-    const card=document.createElement('div');
-    card.className='mat-result-card';
+  if(hasMat){
+    const m=mat;
     let priceStr,subStr,pClass;
     if(mode==='margin'){
-      const disp=m.cost>0?(haulOn?m.rounded:applyRound(m.sell)):0;
-      priceStr=m.cost>0?fmtR(disp):'—';
-      pClass=m.cost>0?pc:'price-neutral';
+      const disp=haulOn?m.rounded:applyRound(m.sell);
+      priceStr=fmtR(disp);pClass=pc;
       const dl=roundDir==='up'?'rounded up':'rounded down';
       const tl=m.taxOn?m.tax.toFixed(1)+'% tax':'no tax';
-      subStr=m.cost>0?`${m.type||'Material '+(i+1)} + haul, ${dl} | mat: ${fmt(m.sell)} (${tl})${haulOn?' + haul: '+fmt(haulSell):''}`:' ';
+      subStr=`${m.type||'Material'} + haul, ${dl} | mat: ${fmt(m.sell)} (${tl})${haulOn?' + haul: '+fmt(haulSell):''}`;
     } else {
-      const disp=targetPrice>0&&m.cost>0?targetPrice:m.raw;
-      priceStr=m.cost>0?fmt(disp):'—';pClass='price-neutral';
-      subStr=m.cost>0?`${targetPrice>0?'Target':'Raw'} | mat: ${fmt(m.sell)}${haulOn?' + haul: '+fmt(haulSell):''}`:' ';
+      const disp=targetPrice>0?targetPrice:m.raw;
+      priceStr=fmt(disp);pClass='price-neutral';
+      subStr=`${targetPrice>0?'Target':'Raw'} | mat: ${fmt(m.sell)}${haulOn?' + haul: '+fmt(haulSell):''}`;
     }
-    card.innerHTML=`<div class="mat-result-top"><span class="mat-result-name">${m.type||(materials.length>1?'Material '+(i+1):'Material')}</span><span class="mat-result-price ${pClass}">${priceStr}</span></div><div class="mat-result-sub">${subStr}</div>`;
+    const card=document.createElement('div');
+    card.className='mat-result-card';
+    card.innerHTML=`<div class="mat-result-top"><span class="mat-result-name">${m.type||'Material'}</span><span class="mat-result-price ${pClass}">${priceStr}</span></div><div class="mat-result-sub">${subStr}</div>`;
     matRes.appendChild(card);
-  });
+  }
 
-  if(haulOn&&haulCost>0){
+  if(haulOn){
     $('haul-result-card').style.display='block';
     $('haul-sell-disp').textContent=fmt(haulSell);
     $('haul-result-sub').textContent=`Pay truck: ${fmt(haulCost)} | Broker: ${fmt(brokerKeep)} | Net payout: ${fmt(netPayout)} | Total margin: ${haulTotalMarginPct.toFixed(1)}%`;
-  } else $('haul-result-card').style.display='none';
+  } else {
+    $('haul-result-card').style.display='none';
+  }
 
-  // --- Margin table ---
-  const bk=$('bk');
-  bk.innerHTML='';
+  // --- all-in ---
+  let allIn=0;
+  if(mode==='margin'){
+    if(hasMat) allIn=haulOn?mat.rounded:applyRound(mat.sell);
+    else if(haulOn) allIn=applyRound(haulSell);
+  } else {
+    allIn=targetPrice>0?targetPrice:(hasMat?mat.raw:haulSell);
+  }
 
-  const hasMat=activeMats.length>0&&activeMats[0].cost>0;
-  const mat=hasMat?activeMats[0]:null;
-
-  // costs
+  // --- margin table ---
   const haulNetCost=haulOn?netPayout:0;
   const matCostVal=mat?mat.taxed:0;
   const combinedCost=haulNetCost+matCostVal;
-
-  // sells
-  const haulSellVal=haulOn?haulSell:0;
-  const matSellVal=mat?mat.sell:0;
-
-  // all-in
-  let allIn=0;
-  if(mode==='margin'){
-    if(mat) allIn=haulOn?mat.rounded:applyRound(mat.sell);
-    else if(haulOn) allIn=applyRound(haulSell);
-  } else {
-    allIn=targetPrice>0?targetPrice:(mat?mat.raw:haulSell);
-  }
-
   const combinedSell=allIn;
   const overTarget=mode==='target'&&targetPrice>0&&combinedCost>targetPrice;
 
-  function marginPct(cost,sell){return sell>0?((sell-cost)/sell*100):0;}
-  function marginDol(cost,sell){return sell-cost;}
-  function fmtPct(n){return n.toFixed(1)+'%';}
+  const mpct=(cost,sell)=>sell>0?((sell-cost)/sell*100):0;
+  const mdol=(cost,sell)=>sell-cost;
+  const fp=n=>n.toFixed(1)+'%';
   const dash='—';
+  const neg=(cost,sell)=>mdol(cost,sell)<0?'neg':'';
 
-  const table=document.createElement('table');
-  table.className='margin-table';
-  table.innerHTML=`
+  const bk=$('bk');
+  bk.innerHTML='';
+  const tbl=document.createElement('table');
+  tbl.className='margin-table';
+  tbl.innerHTML=`
     <thead>
       <tr>
         <th></th>
@@ -423,42 +406,42 @@ function calc(){
       </tr>
     </thead>
     <tbody>
-      <tr id="tbl-haul" style="${haulOn?'':'display:none'}">
+      <tr style="${haulOn?'':'display:none'}">
         <td>Haul<br><span style="font-size:10px;color:#999;font-weight:400;">after broker</span></td>
         <td>${haulOn?fmt(haulNetCost):dash}</td>
-        <td>${haulOn?fmt(haulSellVal):dash}</td>
-        <td class="${haulOn&&marginDol(haulNetCost,haulSellVal)<0?'neg':''}">${haulOn?fmt(marginDol(haulNetCost,haulSellVal)):dash}</td>
-        <td class="${haulOn&&marginPct(haulNetCost,haulSellVal)<0?'neg':''}">${haulOn?fmtPct(marginPct(haulNetCost,haulSellVal)):dash}</td>
+        <td>${haulOn?fmt(haulSell):dash}</td>
+        <td class="${haulOn?neg(haulNetCost,haulSell):''}">${haulOn?fmt(mdol(haulNetCost,haulSell)):dash}</td>
+        <td class="${haulOn?neg(haulNetCost,haulSell):''}">${haulOn?fp(mpct(haulNetCost,haulSell)):dash}</td>
       </tr>
-      <tr id="tbl-mat">
+      <tr>
         <td>Material</td>
         <td>${mat?fmt(matCostVal):dash}</td>
-        <td>${mat?fmt(matSellVal):dash}</td>
-        <td class="${mat&&marginDol(matCostVal,matSellVal)<0?'neg':''}">${mat?fmt(marginDol(matCostVal,matSellVal)):dash}</td>
-        <td class="${mat&&marginPct(matCostVal,matSellVal)<0?'neg':''}">${mat?fmtPct(marginPct(matCostVal,matSellVal)):dash}</td>
+        <td>${mat?fmt(mat.sell):dash}</td>
+        <td class="${mat?neg(matCostVal,mat.sell):''}">${mat?fmt(mdol(matCostVal,mat.sell)):dash}</td>
+        <td class="${mat?neg(matCostVal,mat.sell):''}">${mat?fp(mpct(matCostVal,mat.sell)):dash}</td>
       </tr>
       <tr class="combined-row${overTarget?' over-target':''}">
         <td>Combined</td>
         <td>${fmt(combinedCost)}</td>
         <td class="${overTarget?'neg':''}">${fmt(combinedSell)}</td>
-        <td class="${overTarget||marginDol(combinedCost,combinedSell)<0?'neg':''}">${fmt(marginDol(combinedCost,combinedSell))}</td>
-        <td class="${overTarget||marginPct(combinedCost,combinedSell)<0?'neg':''}">${fmtPct(marginPct(combinedCost,combinedSell))}</td>
+        <td class="${mdol(combinedCost,combinedSell)<0||overTarget?'neg':''}">${fmt(mdol(combinedCost,combinedSell))}</td>
+        <td class="${mpct(combinedCost,combinedSell)<0||overTarget?'neg':''}">${fp(mpct(combinedCost,combinedSell))}</td>
       </tr>
     </tbody>`;
-  bk.appendChild(table);
+  bk.appendChild(tbl);
 
-  // all-in label
-  const hl=hlClass(),dl=roundDir==='up'?'rounded up':'rounded down';
-  const allInRow=document.createElement('div');
-  allInRow.className='bk-row '+hl;
-  allInRow.innerHTML=`<span>${mode==='margin'?'All-in ('+dl+')':'Target price'}</span><span>${fmtR(allIn)}</span>`;
-  bk.appendChild(allInRow);
+  // all-in label row
+  const dl=roundDir==='up'?'rounded up':'rounded down';
+  const aiDiv=document.createElement('div');
+  const aiClass=mode==='margin'?(roundDir==='up'?'up':'down'):'neutral';
+  aiDiv.className='allin-row '+aiClass;
+  aiDiv.innerHTML=`<span>${mode==='margin'?'All-in ('+dl+')':'Target price'}</span><span>${fmtR(allIn)}</span>`;
+  bk.appendChild(aiDiv);
 
   // warning
-  const wb=$('warning-banner');
-  wb.style.display=overTarget?'block':'none';
+  $('warning-banner').style.display=overTarget?'block':'none';
 
-  lastCalc={uom,matData,activeMats,haulOn,haulCost,haulSell,brokerKeep,netPayout,haulSlider,haulTotalMarginPct,mode,targetPrice};
+  lastCalc={uom,mat,haulOn,haulCost,haulSell,brokerKeep,netPayout,haulSlider,haulTotalMarginPct,mode,targetPrice,allIn};
   updateScript();
 }
 
@@ -470,34 +453,27 @@ function buildInternal(){
   let L=['--- INTERNAL QUOTE ---','Date: '+ds];
   if(cust)L.push('Customer: '+cust);
   L.push('Unit: per '+uomLabel[v.uom],'');
-  if(v.haulOn&&v.haulCost>0)L.push('HAULING','  Cost:   '+fmt(v.haulCost),'  Sell:   '+fmt(v.haulSell),'');
-  (v.activeMats||[]).forEach((m,i)=>{
-    const lbl=m.type||((v.activeMats.length>1)?'Material '+(i+1):'Material');
-    const tl=m.taxOn?m.effectiveTax.toFixed(1)+'% tax':'no tax';
-    L.push(lbl.toUpperCase()+' ('+tl+')','  Cost:   '+fmt(m.cost),'  Sell:   '+fmt(m.sell),'');
-  });
-  (v.activeMats||[]).forEach((m,i)=>{
-    const lbl=m.type||((v.activeMats.length>1)?'Material '+(i+1):'Material');
-    if(v.mode==='margin')L.push((v.activeMats.length>1?lbl+' all':'All')+'-in: '+fmtR(v.haulOn?m.rounded:applyRound(m.sell))+' / '+uomLabel[v.uom]+' ('+dl+')');
-    else L.push((v.activeMats.length>1?lbl+' t':'T')+'arget: '+(v.targetPrice>0?fmt(v.targetPrice):fmt(m.raw))+' / '+uomLabel[v.uom]);
-  });
+  if(v.haulOn)L.push('HAULING','  Cost:   '+fmt(v.haulCost),'  Sell:   '+fmt(v.haulSell),'');
+  if(v.mat){
+    const tl=v.mat.taxOn?v.mat.effectiveTax.toFixed(1)+'% tax':'no tax';
+    L.push((v.mat.type||'MATERIAL').toUpperCase()+' ('+tl+')','  Cost:   '+fmt(v.mat.cost),'  Sell:   '+fmt(v.mat.sell),'');
+  }
+  if(v.mode==='margin')L.push('All-in: '+fmtR(v.allIn)+' / '+uomLabel[v.uom]+' ('+dl+')');
+  else L.push('Target: '+fmt(v.allIn)+' / '+uomLabel[v.uom]);
   L.push('','--- Allied Trucking of Palm Beach ---');
   return L.join('\n');
 }
 
 function buildExternal(){
   const v=lastCalc;if(!v.uom)return'';
-  const cust=$('customer-name').value.trim(),uom=uomLabel[v.uom];
-  const am=v.activeMats||[];
+  const cust=$('customer-name').value.trim();
+  const uom=uomLabel[v.uom];
   let msg=(cust?'Hi '+cust+',':'Hi,')+'\n\n';
-  const m=am[0];
-  const all=m&&v.mode==='margin'?(v.haulOn?m.rounded:applyRound(m.sell)):(v.targetPrice>0?v.targetPrice:(m?m.raw:v.haulSell));
-  const lbl=m?.type||'material';
   msg+='We are pleased to offer you the below rate';
-  if(m?.type) msg+=' for '+lbl;
+  if(v.mat&&v.mat.type)msg+=' for '+v.mat.type;
   msg+=':\n\n';
-  msg+='  '+fmtR(all)+' / '+uom+'\n\n';
-  msg+='This rate is all-inclusive — material'+(v.haulOn?', hauling':'')+(m?.taxOn?' & tax':'')+'.\n';
+  msg+='  '+fmtR(v.allIn)+' / '+uom+'\n\n';
+  msg+='This rate is all-inclusive — material'+(v.haulOn?', hauling':'')+(v.mat&&v.mat.taxOn?' & tax':'')+'.\n';
   msg+='\nPlease don\'t hesitate to reach out with any questions. We appreciate your business!\n\n— Allied Trucking of Palm Beach';
   return msg;
 }
@@ -543,9 +519,7 @@ $('copy-btn').addEventListener('click',function(){
 });
 $('customer-name').addEventListener('input',updateScript);
 
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('sw.js').catch(()=>{});
-}
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
 
 materials.push(createMat());
 renderMats();
