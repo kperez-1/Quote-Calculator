@@ -106,10 +106,7 @@
 </div>
 
 <div class="card">
-  <div class="haul-toggle-row">
-    <label class="toggle"><input type="checkbox" id="haul-on" checked><span class="tog-sl"></span></label>
-    <span style="font-size:14px;font-weight:600;">Hauling</span>
-  </div>
+  <div class="card-title">Hauling</div>
   <div id="haul-fields">
     <div class="field" style="margin-bottom:8px;">
       <label>Haul cost — what you pay the truck ($)</label>
@@ -320,8 +317,8 @@ function renderMats(){
 
 function calc(){
   const uom=$('uom').value;
-  const haulOn=$('haul-on').checked;
   const haulCost=parseFloat($('haul-cost').value)||0;
+  const haulOn=haulCost>0;
   const haulSlider=parseInt($('haul-margin').value)||0;
   const targetPrice=parseFloat($('target-price').value)||0;
   const haulSell=haulOn?calcHaulSell(haulCost,haulSlider):0;
@@ -472,7 +469,6 @@ function updateScript(){
 }
 
 $('add-mat-btn').addEventListener('click',()=>{materials.push(createMat());renderMats();calc();});
-$('haul-on').addEventListener('change',function(){$('haul-fields').className=this.checked?'':'disabled';calc();});
 $('haul-margin').addEventListener('input',function(){$('haul-margin-disp').textContent=this.value+'%';calc();});
 document.querySelectorAll('.nudge-btn[data-target]').forEach(btn=>{
   btn.addEventListener('click',function(){
