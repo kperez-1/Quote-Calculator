@@ -65,13 +65,19 @@
   .price-neutral{color:#1a1a1a;}
   .mat-result-sub{font-size:11px;color:#888;}
   .haul-result-card{background:#fff;border:0.5px solid rgba(0,0,0,0.1);border-radius:8px;padding:10px 14px;margin-bottom:12px;}
-  .bk{display:flex;flex-direction:column;gap:5px;border-top:0.5px solid rgba(0,0,0,0.1);padding-top:12px;}
-  .bk-row{display:flex;justify-content:space-between;font-size:13px;color:#666;}
-  .bk-sep{height:0.5px;background:rgba(0,0,0,0.08);margin:4px 0;}
-  .bk-row.strong{font-size:13px;font-weight:600;color:#1a1a1a;}
-  .bk-row.highlight-up{font-size:14px;font-weight:600;color:#1D9E75;border-top:0.5px solid rgba(0,0,0,0.1);padding-top:8px;margin-top:2px;}
-  .bk-row.highlight-down{font-size:14px;font-weight:600;color:#D85A30;border-top:0.5px solid rgba(0,0,0,0.1);padding-top:8px;margin-top:2px;}
-  .bk-row.highlight-neutral{font-size:14px;font-weight:600;color:#0F6E56;border-top:0.5px solid rgba(0,0,0,0.1);padding-top:8px;margin-top:2px;}
+  .margin-table{width:100%;border-collapse:collapse;margin-top:12px;border-top:0.5px solid rgba(0,0,0,0.1);padding-top:12px;display:table;}
+  .margin-table th{font-size:11px;font-weight:600;color:#888;text-align:right;padding:6px 8px 4px;border-bottom:0.5px solid rgba(0,0,0,0.1);}
+  .margin-table th:first-child{text-align:left;}
+  .margin-table td{font-size:13px;color:#444;text-align:right;padding:5px 8px;}
+  .margin-table td:first-child{text-align:left;font-weight:600;color:#1a1a1a;}
+  .margin-table tr.combined-row td{font-weight:600;color:#1a1a1a;border-top:0.5px solid rgba(0,0,0,0.1);padding-top:8px;}
+  .margin-table tr.combined-row td:first-child{color:#1a1a1a;}
+  .margin-table td.neg{color:#D85A30;font-weight:600;}
+  .margin-table tr.combined-row.over-target td{color:#D85A30;}
+  .warning-banner{background:#FAECE7;border:1px solid #F0997B;border-radius:8px;padding:10px 14px;margin-top:10px;font-size:13px;color:#993C1D;font-weight:500;display:none;}
+  .bk-row.highlight-up{font-size:14px;font-weight:600;color:#1D9E75;border-top:0.5px solid rgba(0,0,0,0.1);padding-top:8px;margin-top:2px;display:flex;justify-content:space-between;}
+  .bk-row.highlight-down{font-size:14px;font-weight:600;color:#D85A30;border-top:0.5px solid rgba(0,0,0,0.1);padding-top:8px;margin-top:2px;display:flex;justify-content:space-between;}
+  .bk-row.highlight-neutral{font-size:14px;font-weight:600;color:#0F6E56;border-top:0.5px solid rgba(0,0,0,0.1);padding-top:8px;margin-top:2px;display:flex;justify-content:space-between;}
   .broker-note{font-size:11px;color:#666;margin-top:6px;padding:6px 8px;background:#f5f4f0;border-radius:6px;border:0.5px solid rgba(0,0,0,0.1);}
   .script-section{margin-top:12px;border-top:0.5px solid rgba(0,0,0,0.1);padding-top:12px;}
   .stabs{display:flex;gap:6px;margin-bottom:8px;}
@@ -166,11 +172,8 @@
     </div>
     <div class="mat-result-sub" id="haul-result-sub"></div>
   </div>
-  <div class="bk" id="bk"></div>
-  <div id="target-implied" style="display:none;margin-top:10px;">
-    <div style="font-size:12px;color:#666;text-align:center;margin-bottom:6px;">Implied margins at target price</div>
-    <div class="implied-margins" id="implied-chips"></div>
-  </div>
+  <div id="bk" style="margin-top:4px;"></div>
+  <div class="warning-banner" id="warning-banner">Target price is below total cost — increase the target or reduce your costs.</div>
   <div class="script-section">
     <div style="font-size:13px;font-weight:600;color:#555;margin-bottom:8px;">Share this quote</div>
     <div class="field" style="margin-bottom:8px;">
@@ -325,6 +328,8 @@ function calc(){
   const netPayout=haulOn&&haulCost>0?haulCost*(1-BROKER):0;
   const haulTotalMarginPct=haulSell>0?((haulSell-netPayout)/haulSell*100):0;
 
+  const activeMats=matData.filter(m=>m.cost>0);
+
   if(haulOn&&haulCost>0){
     $('broker-note').style.display='block';
     $('broker-note').textContent='Broker fee (10%): '+fmt(brokerKeep)+' kept | Net payout: '+fmt(netPayout)+' | Sell: '+fmt(haulSell)+' | Total margin: '+haulTotalMarginPct.toFixed(1)+'%';
@@ -372,42 +377,86 @@ function calc(){
     $('haul-result-sub').textContent=`Pay truck: ${fmt(haulCost)} | Broker: ${fmt(brokerKeep)} | Net payout: ${fmt(netPayout)} | Total margin: ${haulTotalMarginPct.toFixed(1)}%`;
   } else $('haul-result-card').style.display='none';
 
-  const bk=$('bk');bk.innerHTML='';
-  const addRow=(l,v,c='')=>{const r=document.createElement('div');r.className='bk-row'+(c?' '+c:'');r.innerHTML=`<span>${l}</span><span>${v}</span>`;bk.appendChild(r);};
-  const addSep=()=>{const s=document.createElement('div');s.className='bk-sep';bk.appendChild(s);};
+  // --- Margin table ---
+  const bk=$('bk');
+  bk.innerHTML='';
 
-  if(haulOn&&haulCost>0){addRow('Haul cost',fmt(haulCost));addRow('Haul sell',fmt(haulSell),'strong');addSep();}
-  const activeMats=matData.filter(m=>m.cost>0);
-  activeMats.forEach((m,i)=>{
-    const lbl=m.type||(activeMats.length>1?'Material '+(i+1):'Material');
-    const tl=m.taxOn?m.effectiveTax.toFixed(1)+'% tax':'no tax';
-    addRow(lbl+' cost ('+tl+')',fmt(m.cost));addRow(lbl+' sell',fmt(m.sell),'strong');addSep();
-  });
+  const hasMat=activeMats.length>0&&activeMats[0].cost>0;
+  const mat=hasMat?activeMats[0]:null;
 
-  const hl=hlClass(),dl=roundDir==='up'?'rounded up':'rounded down';
-  $('target-implied').style.display='none';
+  // costs
+  const haulNetCost=haulOn?netPayout:0;
+  const matCostVal=mat?mat.taxed:0;
+  const combinedCost=haulNetCost+matCostVal;
 
+  // sells
+  const haulSellVal=haulOn?haulSell:0;
+  const matSellVal=mat?mat.sell:0;
+
+  // all-in
+  let allIn=0;
   if(mode==='margin'){
-    activeMats.forEach(m=>{
-      const allIn=haulOn?m.rounded:applyRound(m.sell);
-      addRow('All-in ('+dl+')',fmtR(allIn),hl);
-      // true blended margin: revenue vs total cost (mat taxed + net haul payout)
-      const totalCost=m.taxed+(haulOn?netPayout:0);
-      const om=allIn>0?((allIn-totalCost)/allIn*100):0;
-      $('target-implied').style.display='block';
-      $('implied-chips').innerHTML=`<div class="im-chip"><div class="im-chip-label">Overall margin</div><div class="im-chip-val">${om.toFixed(1)}%</div></div>`;
-    });
-  } else if(targetPrice>0){
-    activeMats.forEach(m=>{
-      addRow('Target price',fmt(targetPrice),'highlight-neutral');
-      const totalCost=m.taxed+(haulOn?netPayout:0);
-      const om=targetPrice>0?((targetPrice-totalCost)/targetPrice*100):0;
-      $('target-implied').style.display='block';
-      $('implied-chips').innerHTML=`<div class="im-chip"><div class="im-chip-label">Overall margin</div><div class="im-chip-val">${om.toFixed(1)}%</div></div>`;
-    });
+    if(mat) allIn=haulOn?mat.rounded:applyRound(mat.sell);
+    else if(haulOn) allIn=applyRound(haulSell);
   } else {
-    activeMats.forEach(m=>addRow('Raw total',fmt(m.raw),'highlight-neutral'));
+    allIn=targetPrice>0?targetPrice:(mat?mat.raw:haulSell);
   }
+
+  const combinedSell=allIn;
+  const overTarget=mode==='target'&&targetPrice>0&&combinedCost>targetPrice;
+
+  function marginPct(cost,sell){return sell>0?((sell-cost)/sell*100):0;}
+  function marginDol(cost,sell){return sell-cost;}
+  function fmtPct(n){return n.toFixed(1)+'%';}
+  const dash='—';
+
+  const table=document.createElement('table');
+  table.className='margin-table';
+  table.innerHTML=`
+    <thead>
+      <tr>
+        <th></th>
+        <th>Cost</th>
+        <th>Sell</th>
+        <th>Margin $</th>
+        <th>Margin %</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr id="tbl-haul" style="${haulOn?'':'display:none'}">
+        <td>Haul<br><span style="font-size:10px;color:#999;font-weight:400;">after broker</span></td>
+        <td>${haulOn?fmt(haulNetCost):dash}</td>
+        <td>${haulOn?fmt(haulSellVal):dash}</td>
+        <td class="${haulOn&&marginDol(haulNetCost,haulSellVal)<0?'neg':''}">${haulOn?fmt(marginDol(haulNetCost,haulSellVal)):dash}</td>
+        <td class="${haulOn&&marginPct(haulNetCost,haulSellVal)<0?'neg':''}">${haulOn?fmtPct(marginPct(haulNetCost,haulSellVal)):dash}</td>
+      </tr>
+      <tr id="tbl-mat">
+        <td>Material</td>
+        <td>${mat?fmt(matCostVal):dash}</td>
+        <td>${mat?fmt(matSellVal):dash}</td>
+        <td class="${mat&&marginDol(matCostVal,matSellVal)<0?'neg':''}">${mat?fmt(marginDol(matCostVal,matSellVal)):dash}</td>
+        <td class="${mat&&marginPct(matCostVal,matSellVal)<0?'neg':''}">${mat?fmtPct(marginPct(matCostVal,matSellVal)):dash}</td>
+      </tr>
+      <tr class="combined-row${overTarget?' over-target':''}">
+        <td>Combined</td>
+        <td>${fmt(combinedCost)}</td>
+        <td class="${overTarget?'neg':''}">${fmt(combinedSell)}</td>
+        <td class="${overTarget||marginDol(combinedCost,combinedSell)<0?'neg':''}">${fmt(marginDol(combinedCost,combinedSell))}</td>
+        <td class="${overTarget||marginPct(combinedCost,combinedSell)<0?'neg':''}">${fmtPct(marginPct(combinedCost,combinedSell))}</td>
+      </tr>
+    </tbody>`;
+  bk.appendChild(table);
+
+  // all-in label
+  const hl=hlClass(),dl=roundDir==='up'?'rounded up':'rounded down';
+  const allInRow=document.createElement('div');
+  allInRow.className='bk-row '+hl;
+  allInRow.innerHTML=`<span>${mode==='margin'?'All-in ('+dl+')':'Target price'}</span><span>${fmtR(allIn)}</span>`;
+  bk.appendChild(allInRow);
+
+  // warning
+  const wb=$('warning-banner');
+  wb.style.display=overTarget?'block':'none';
 
   lastCalc={uom,matData,activeMats,haulOn,haulCost,haulSell,brokerKeep,netPayout,haulSlider,haulTotalMarginPct,mode,targetPrice};
   updateScript();
