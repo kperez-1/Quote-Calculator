@@ -385,26 +385,28 @@ function calc(){
   });
 
   const hl=hlClass(),dl=roundDir==='up'?'rounded up':'rounded down';
+  $('target-implied').style.display='none';
+
   if(mode==='margin'){
-    activeMats.forEach((m,i)=>{
-      const lbl=m.type||(activeMats.length>1?'Material '+(i+1):'Material');
-      addRow((activeMats.length>1?lbl+' a':'A')+'ll-in ('+dl+')',fmtR(haulOn?m.rounded:applyRound(m.sell)),hl);
+    activeMats.forEach(m=>{
+      const allIn=haulOn?m.rounded:applyRound(m.sell);
+      addRow('All-in ('+dl+')',fmtR(allIn),hl);
+      // true blended margin: revenue vs total cost (mat taxed + net haul payout)
+      const totalCost=m.taxed+(haulOn?netPayout:0);
+      const om=allIn>0?((allIn-totalCost)/allIn*100):0;
+      $('target-implied').style.display='block';
+      $('implied-chips').innerHTML=`<div class="im-chip"><div class="im-chip-label">Overall margin</div><div class="im-chip-val">${om.toFixed(1)}%</div></div>`;
     });
   } else if(targetPrice>0){
-    activeMats.forEach((m,i)=>{
-      const lbl=m.type||(activeMats.length>1?'Material '+(i+1):'Material');
-      addRow((activeMats.length>1?lbl+' t':'T')+'arget price',fmt(targetPrice),'highlight-neutral');
+    activeMats.forEach(m=>{
+      addRow('Target price',fmt(targetPrice),'highlight-neutral');
+      const totalCost=m.taxed+(haulOn?netPayout:0);
+      const om=targetPrice>0?((targetPrice-totalCost)/targetPrice*100):0;
+      $('target-implied').style.display='block';
+      $('implied-chips').innerHTML=`<div class="im-chip"><div class="im-chip-label">Overall margin</div><div class="im-chip-val">${om.toFixed(1)}%</div></div>`;
     });
-    const tc=(activeMats[0]?.taxed||0)+(haulOn?netPayout:0);
-    const om=tc>0?((targetPrice-tc)/targetPrice*100):0;
-    $('target-implied').style.display='block';
-    $('implied-chips').innerHTML=`<div class="im-chip"><div class="im-chip-label">Overall margin</div><div class="im-chip-val">${om.toFixed(1)}%</div></div>`;
   } else {
-    activeMats.forEach((m,i)=>{
-      const lbl=m.type||(activeMats.length>1?'Material '+(i+1):'Material');
-      addRow((activeMats.length>1?lbl+' r':'R')+'aw total',fmt(m.raw),'highlight-neutral');
-    });
-    $('target-implied').style.display='none';
+    activeMats.forEach(m=>addRow('Raw total',fmt(m.raw),'highlight-neutral'));
   }
 
   lastCalc={uom,matData,activeMats,haulOn,haulCost,haulSell,brokerKeep,netPayout,haulSlider,haulTotalMarginPct,mode,targetPrice};
