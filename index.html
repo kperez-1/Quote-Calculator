@@ -441,23 +441,14 @@ function buildExternal(){
   const cust=$('customer-name').value.trim(),uom=uomLabel[v.uom];
   const am=v.activeMats||[];
   let msg=(cust?'Hi '+cust+',':'Hi,')+'\n\n';
-  if(am.length>1){
-    msg+='We\'re pleased to offer the following quotes, delivered:\n\n';
-    am.forEach((m,i)=>{
-      const lbl=m.type||'Material '+(i+1);
-      const all=v.mode==='margin'?(v.haulOn?m.rounded:applyRound(m.sell)):(v.targetPrice>0?v.targetPrice:m.raw);
-      msg+='  '+lbl+':  '+fmtR(all)+' / '+uom+' (material + haul, tax included)\n';
-    });
-    if(v.haulOn&&v.haulCost>0)msg+='\nHauling is shared across all materials at '+fmt(v.haulSell)+' / '+uom+'.\n';
-  } else if(am.length===1){
-    const m=am[0],lbl=m.type||'material';
-    const all=v.mode==='margin'?(v.haulOn?m.rounded:applyRound(m.sell)):(v.targetPrice>0?v.targetPrice:m.raw);
-    if(v.haulOn&&v.haulCost>0){
-      msg+='We\'re pleased to offer '+lbl+', delivered, at '+fmtR(all)+' / '+uom+' — all-inclusive (material, haul & tax).\n';
-      msg+='\n  Material:  '+fmt(m.sell)+' / '+uom+(m.taxOn?' (tax included)':'')+'\n';
-      msg+='  Hauling:   '+fmt(v.haulSell)+' / '+uom+'\n  All-in:    '+fmtR(all)+' / '+uom+'\n';
-    } else msg+='We\'re pleased to offer '+lbl+' at '+fmtR(all)+' / '+uom+(m.taxOn?' (tax included)':'')+'.\n';
-  } else if(v.haulOn&&v.haulCost>0)msg+='We\'re pleased to offer hauling services at '+fmt(v.haulSell)+' / '+uom+'.\n';
+  const m=am[0];
+  const all=m&&v.mode==='margin'?(v.haulOn?m.rounded:applyRound(m.sell)):(v.targetPrice>0?v.targetPrice:(m?m.raw:v.haulSell));
+  const lbl=m?.type||'material';
+  msg+='We are pleased to offer you the below rate';
+  if(m?.type) msg+=' for '+lbl;
+  msg+=':\n\n';
+  msg+='  '+fmtR(all)+' / '+uom+'\n\n';
+  msg+='This rate is all-inclusive — material'+(v.haulOn?', hauling':'')+(m?.taxOn?' & tax':'')+'.\n';
   msg+='\nPlease don\'t hesitate to reach out with any questions. We appreciate your business!\n\n— Allied Trucking of Palm Beach';
   return msg;
 }
