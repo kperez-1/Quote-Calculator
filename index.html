@@ -104,24 +104,22 @@ h1{font-size:17px;font-weight:600;color:#1a1a1a;margin-bottom:14px;padding:4px 0
 
 <div class="card">
   <div class="card-title">Hauling</div>
-  <div id="haul-fields">
-    <div class="field" style="margin-bottom:8px;">
-      <label>Haul cost — what you pay the truck ($)</label>
-      <input type="number" id="haul-cost" min="0" step="0.01" placeholder="0.00" inputmode="decimal">
-    </div>
-    <div class="margin-block">
-      <div class="margin-slider-row">
-        <span class="margin-label">Add'l margin</span>
-        <input type="range" id="haul-margin" min="0" max="50" step="1" value="10">
-        <span class="margin-val" id="haul-margin-disp">10%</span>
-      </div>
-      <div class="nudge-row">
-        <button class="nudge-btn minus" data-target="haul-margin" data-disp="haul-margin-disp" data-min="0" data-max="50">&#8722;</button>
-        <button class="nudge-btn plus"  data-target="haul-margin" data-disp="haul-margin-disp" data-min="0" data-max="50">&#43;</button>
-      </div>
-    </div>
-    <div class="broker-note" id="broker-note" style="display:none;"></div>
+  <div class="field" style="margin-bottom:8px;">
+    <label>Haul cost — what you pay the truck ($)</label>
+    <input type="number" id="haul-cost" min="0" step="0.01" placeholder="0.00" inputmode="decimal">
   </div>
+  <div class="margin-block">
+    <div class="margin-slider-row">
+      <span class="margin-label">Add'l margin</span>
+      <input type="range" id="haul-margin" min="0" max="50" step="1" value="10">
+      <span class="margin-val" id="haul-margin-disp">10%</span>
+    </div>
+    <div class="nudge-row">
+      <button class="nudge-btn minus" data-target="haul-margin" data-disp="haul-margin-disp" data-min="0" data-max="50">&#8722;</button>
+      <button class="nudge-btn plus"  data-target="haul-margin" data-disp="haul-margin-disp" data-min="0" data-max="50">&#43;</button>
+    </div>
+  </div>
+  <div class="broker-note" id="broker-note" style="display:none;"></div>
 </div>
 
 <div class="card">
@@ -191,23 +189,27 @@ const uomLabel={ton:'ton',cy:'CY',load:'load'};
 const fmt=n=>'$'+n.toFixed(2);
 const fmtR=n=>'$'+n.toFixed(2);
 
-function applyRound(v){return roundDir==='up'?Math.ceil(v/roundTo)*roundTo:Math.floor(v/roundTo)*roundTo;}
-function priceClass(){if(mode!=='margin')return'price-neutral';return roundDir==='up'?'price-up':'price-down';}
-
+function applyRound(v){
+  return roundDir==='up'?Math.ceil(v/roundTo)*roundTo:Math.floor(v/roundTo)*roundTo;
+}
+function priceClass(){
+  if(mode!=='margin')return'price-neutral';
+  return roundDir==='up'?'price-up':'price-down';
+}
 function calcHaulSell(c,pct){
   if(c<=0)return 0;
   const net=c*(1-BROKER),m=pct/100;
-  return m>=1?net*100:net/(1-m);
+  return m>=1?net*1000:net/(1-m);
 }
-
 function setActiveRnd(btn){
   document.querySelectorAll('.rnd-btn').forEach(b=>b.classList.remove('selected'));
   btn.classList.add('selected');
   roundTo=parseFloat(btn.dataset.val);
   roundDir=btn.dataset.dir;
 }
-
-function createMat(){return{id:'m'+(++matIdCounter),type:'',cost:0,tax:6.5,taxOn:true,margin:15};}
+function createMat(){
+  return{id:'m'+(++matIdCounter),type:'',cost:0,tax:6.5,taxOn:true,margin:15};
+}
 
 function matTaxRowHTML(m){
   return`<div class="tax-row">
@@ -320,12 +322,13 @@ function calc(){
     $('broker-note').style.display='none';
   }
 
+  // Material: margin on raw cost, tax applied on top of sell price
   const matData=materials.map(m=>{
     const et=m.taxOn?m.tax:0;
     const sell=m.cost>0&&m.margin<100?m.cost/(1-m.margin/100):0;
     const customerPrice=sell*(1+et/100);
     const raw=customerPrice+haulSell;
-    return{...m,effectiveTax:et,taxed:m.cost,sell,customerPrice,marginAmt:sell-m.cost,raw,rounded:applyRound(raw)};
+    return{...m,effectiveTax:et,sell,customerPrice,marginAmt:sell-m.cost,raw,rounded:applyRound(raw)};
   });
 
   const activeMats=matData.filter(m=>m.cost>0);
@@ -337,7 +340,7 @@ function calc(){
   $('result-area').style.display='block';
   $('res-uom').textContent=uomLabel[uom];
 
-  // --- quoted price cards ---
+  // --- quoted price card ---
   const pc=priceClass();
   const matRes=$('mat-results');
   matRes.innerHTML='';
@@ -345,15 +348,14 @@ function calc(){
     const m=mat;
     let priceStr,subStr,pClass;
     if(mode==='margin'){
-      const disp=haulOn?m.rounded:applyRound(m.sell);
+      const disp=haulOn?m.rounded:applyRound(m.customerPrice);
       priceStr=fmtR(disp);pClass=pc;
       const dl=roundDir==='up'?'rounded up':'rounded down';
-      const tl=m.taxOn?m.tax.toFixed(1)+'% tax on sell':'no tax';
-      subStr=`${m.type||'Material'} + haul, ${dl} | mat sell: ${fmt(m.sell)} + tax: ${fmt(m.customerPrice-m.sell)}${haulOn?' + haul: '+fmt(haulSell):''}`;
+      subStr=`${m.type||'Material'} + haul, ${dl} | mat sell: ${fmt(m.sell)}${m.taxOn?' + tax: '+fmt(m.customerPrice-m.sell):''}${haulOn?' + haul: '+fmt(haulSell):''}`;
     } else {
       const disp=targetPrice>0?targetPrice:m.raw;
       priceStr=fmt(disp);pClass='price-neutral';
-      subStr=`${targetPrice>0?'Target':'Raw'} | mat: ${fmt(m.sell)}${haulOn?' + haul: '+fmt(haulSell):''}`;
+      subStr=`${targetPrice>0?'Target':'Raw'} | mat sell: ${fmt(m.sell)}${haulOn?' + haul: '+fmt(haulSell):''}`;
     }
     const card=document.createElement('div');
     card.className='mat-result-card';
@@ -369,7 +371,8 @@ function calc(){
     $('haul-result-card').style.display='none';
   }
 
-  // --- all-in ---
+  // --- all-in price ---
+  let allIn=0;
   if(mode==='margin'){
     if(hasMat) allIn=haulOn?mat.rounded:applyRound(mat.customerPrice);
     else if(haulOn) allIn=applyRound(haulSell);
@@ -377,11 +380,10 @@ function calc(){
     allIn=targetPrice>0?targetPrice:(hasMat?mat.raw:haulSell);
   }
 
+  // --- margin table ---
   const haulNetCost=haulOn?netPayout:0;
   const matCostVal=mat?mat.cost:0;
   const matSellVal=mat?mat.sell:0;
-  const matCustomerPrice=mat?mat.customerPrice:0;
-  const combinedCost=haulNetCost+matCostVal;
   const combinedCost=haulNetCost+matCostVal;
   const combinedSell=allIn;
   const overTarget=mode==='target'&&targetPrice>0&&combinedCost>targetPrice;
@@ -390,7 +392,7 @@ function calc(){
   const mdol=(cost,sell)=>sell-cost;
   const fp=n=>n.toFixed(1)+'%';
   const dash='—';
-  const neg=(cost,sell)=>mdol(cost,sell)<0?'neg':'';
+  const negCls=(cost,sell)=>mdol(cost,sell)<0?'neg':'';
 
   const bk=$('bk');
   bk.innerHTML='';
@@ -411,18 +413,18 @@ function calc(){
         <td>Haul<br><span style="font-size:10px;color:#999;font-weight:400;">after broker</span></td>
         <td>${haulOn?fmt(haulNetCost):dash}</td>
         <td>${haulOn?fmt(haulSell):dash}</td>
-        <td class="${haulOn?neg(haulNetCost,haulSell):''}">${haulOn?fmt(mdol(haulNetCost,haulSell)):dash}</td>
-        <td class="${haulOn?neg(haulNetCost,haulSell):''}">${haulOn?fp(mpct(haulNetCost,haulSell)):dash}</td>
+        <td class="${haulOn?negCls(haulNetCost,haulSell):''}">${haulOn?fmt(mdol(haulNetCost,haulSell)):dash}</td>
+        <td class="${haulOn?negCls(haulNetCost,haulSell):''}">${haulOn?fp(mpct(haulNetCost,haulSell)):dash}</td>
       </tr>
       <tr>
         <td>Material${mat&&mat.taxOn?'<br><span style="font-size:10px;color:#999;font-weight:400;">+'+mat.effectiveTax.toFixed(1)+'% tax on sell</span>':''}</td>
         <td>${mat?fmt(matCostVal):dash}</td>
         <td>${mat?fmt(matSellVal):dash}</td>
-        <td class="${mat?neg(matCostVal,matSellVal):''}">${mat?fmt(mdol(matCostVal,matSellVal)):dash}</td>
-        <td class="${mat?neg(matCostVal,matSellVal):''}">${mat?fp(mpct(matCostVal,matSellVal)):dash}</td>
+        <td class="${mat?negCls(matCostVal,matSellVal):''}">${mat?fmt(mdol(matCostVal,matSellVal)):dash}</td>
+        <td class="${mat?negCls(matCostVal,matSellVal):''}">${mat?fp(mpct(matCostVal,matSellVal)):dash}</td>
       </tr>
       <tr class="combined-row${overTarget?' over-target':''}">
-        <td>Combined${mat&&mat.taxOn?'<br><span style="font-size:10px;color:#999;font-weight:400;">incl. tax on mat sell</span>':''}</td>
+        <td>Combined</td>
         <td>${fmt(combinedCost)}</td>
         <td class="${overTarget?'neg':''}">${fmt(combinedSell)}</td>
         <td class="${mdol(combinedCost,combinedSell)<0||overTarget?'neg':''}">${fmt(mdol(combinedCost,combinedSell))}</td>
@@ -431,15 +433,13 @@ function calc(){
     </tbody>`;
   bk.appendChild(tbl);
 
-  // all-in label row
+  // all-in label
   const dl=roundDir==='up'?'rounded up':'rounded down';
   const aiDiv=document.createElement('div');
-  const aiClass=mode==='margin'?(roundDir==='up'?'up':'down'):'neutral';
-  aiDiv.className='allin-row '+aiClass;
+  aiDiv.className='allin-row '+(mode==='margin'?(roundDir==='up'?'up':'down'):'neutral');
   aiDiv.innerHTML=`<span>${mode==='margin'?'All-in ('+dl+')':'Target price'}</span><span>${fmtR(allIn)}</span>`;
   bk.appendChild(aiDiv);
 
-  // warning
   $('warning-banner').style.display=overTarget?'block':'none';
 
   lastCalc={uom,mat,haulOn,haulCost,haulSell,brokerKeep,netPayout,haulSlider,haulTotalMarginPct,mode,targetPrice,allIn};
@@ -456,7 +456,7 @@ function buildInternal(){
   L.push('Unit: per '+uomLabel[v.uom],'');
   if(v.haulOn)L.push('HAULING','  Cost:   '+fmt(v.haulCost),'  Sell:   '+fmt(v.haulSell),'');
   if(v.mat){
-    const tl=v.mat.taxOn?v.mat.effectiveTax.toFixed(1)+'% tax':'no tax';
+    const tl=v.mat.taxOn?v.mat.effectiveTax.toFixed(1)+'% tax on sell':'no tax';
     L.push((v.mat.type||'MATERIAL').toUpperCase()+' ('+tl+')','  Cost:   '+fmt(v.mat.cost),'  Sell:   '+fmt(v.mat.sell),'');
   }
   if(v.mode==='margin')L.push('All-in: '+fmtR(v.allIn)+' / '+uomLabel[v.uom]+' ('+dl+')');
@@ -486,7 +486,9 @@ function updateScript(){
   lbl.textContent=scriptTab==='internal'?'Copy internal script':'Copy customer script';
 }
 
-$('haul-margin').addEventListener('input',function(){$('haul-margin-disp').textContent=this.value+'%';calc();});
+$('haul-margin').addEventListener('input',function(){
+  $('haul-margin-disp').textContent=this.value+'%';calc();
+});
 document.querySelectorAll('.nudge-btn[data-target]').forEach(btn=>{
   btn.addEventListener('click',function(){
     const sl=$(this.dataset.target),dp=$(this.dataset.disp);
@@ -496,7 +498,9 @@ document.querySelectorAll('.nudge-btn[data-target]').forEach(btn=>{
   });
 });
 ['haul-cost','uom','target-price'].forEach(id=>{$(id).addEventListener('input',calc);});
-document.querySelectorAll('.rnd-btn').forEach(btn=>{btn.addEventListener('click',function(){setActiveRnd(this);calc();});});
+document.querySelectorAll('.rnd-btn').forEach(btn=>{
+  btn.addEventListener('click',function(){setActiveRnd(this);calc();});
+});
 document.querySelectorAll('.tab').forEach(t=>{
   t.addEventListener('click',function(){
     document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
@@ -515,7 +519,10 @@ document.querySelectorAll('.stab').forEach(btn=>{
 $('copy-btn').addEventListener('click',function(){
   navigator.clipboard.writeText($('script-box').textContent).then(()=>{
     this.classList.add('copied');$('copy-label').textContent='Copied!';
-    setTimeout(()=>{this.classList.remove('copied');$('copy-label').textContent=scriptTab==='internal'?'Copy internal script':'Copy customer script';},2000);
+    setTimeout(()=>{
+      this.classList.remove('copied');
+      $('copy-label').textContent=scriptTab==='internal'?'Copy internal script':'Copy customer script';
+    },2000);
   });
 });
 $('customer-name').addEventListener('input',updateScript);
