@@ -189,11 +189,9 @@ const uomLabel={ton:'ton',cy:'CY',load:'load'};
 const fmt=n=>'$'+n.toFixed(2);
 const fmtR=n=>'$'+n.toFixed(2);
 
-function applyRound(v){
-  return roundDir==='up'?Math.ceil(v/roundTo)*roundTo:Math.floor(v/roundTo)*roundTo;
-}
+function applyRound(v){return applyRoundIfActive(v);}
 function priceClass(){
-  if(mode!=='margin')return'price-neutral';
+  if(mode!=='margin'||!roundingActive)return'price-neutral';
   return roundDir==='up'?'price-up':'price-down';
 }
 function calcHaulSell(c,pct){
@@ -201,11 +199,17 @@ function calcHaulSell(c,pct){
   const net=c*(1-BROKER),m=pct/100;
   return m>=1?net*1000:net/(1-m);
 }
+let roundingActive=false;
 function setActiveRnd(btn){
   document.querySelectorAll('.rnd-btn').forEach(b=>b.classList.remove('selected'));
   btn.classList.add('selected');
   roundTo=parseFloat(btn.dataset.val);
   roundDir=btn.dataset.dir;
+  roundingActive=true;
+}
+function applyRoundIfActive(v){
+  if(!roundingActive)return v;
+  return roundDir==='up'?Math.ceil(v/roundTo)*roundTo:Math.floor(v/roundTo)*roundTo;
 }
 function createMat(){
   return{id:'m'+(++matIdCounter),type:'',cost:0,tax:6.5,taxOn:true,margin:15};
@@ -436,7 +440,7 @@ function calc(){
   // all-in label
   const dl=roundDir==='up'?'rounded up':'rounded down';
   const aiDiv=document.createElement('div');
-  aiDiv.className='allin-row '+(mode==='margin'?(roundDir==='up'?'up':'down'):'neutral');
+  aiDiv.className='allin-row '+(mode==='margin'?(roundingActive?(roundDir==='up'?'up':'down'):'neutral'):'neutral');
   aiDiv.innerHTML=`<span>${mode==='margin'?'All-in ('+dl+')':'Target price'}</span><span>${fmtR(allIn)}</span>`;
   bk.appendChild(aiDiv);
 
@@ -531,8 +535,7 @@ if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch
 
 materials.push(createMat());
 renderMats();
-const def=document.querySelector('.rnd-btn[data-val="1"][data-dir="up"]');
-if(def)setActiveRnd(def);
+
 </script>
 </body>
 </html>
