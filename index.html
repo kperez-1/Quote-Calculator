@@ -322,10 +322,10 @@ function calc(){
 
   const matData=materials.map(m=>{
     const et=m.taxOn?m.tax:0;
-    const taxed=m.cost>0?m.cost*(1+et/100):0;
-    const sell=m.cost>0&&m.margin<100?taxed/(1-m.margin/100):0;
-    const raw=sell+haulSell;
-    return{...m,effectiveTax:et,taxed,sell,marginAmt:sell-taxed,raw,rounded:applyRound(raw)};
+    const sell=m.cost>0&&m.margin<100?m.cost/(1-m.margin/100):0;
+    const customerPrice=sell*(1+et/100);
+    const raw=customerPrice+haulSell;
+    return{...m,effectiveTax:et,taxed:m.cost,sell,customerPrice,marginAmt:sell-m.cost,raw,rounded:applyRound(raw)};
   });
 
   const activeMats=matData.filter(m=>m.cost>0);
@@ -348,8 +348,8 @@ function calc(){
       const disp=haulOn?m.rounded:applyRound(m.sell);
       priceStr=fmtR(disp);pClass=pc;
       const dl=roundDir==='up'?'rounded up':'rounded down';
-      const tl=m.taxOn?m.tax.toFixed(1)+'% tax':'no tax';
-      subStr=`${m.type||'Material'} + haul, ${dl} | mat: ${fmt(m.sell)} (${tl})${haulOn?' + haul: '+fmt(haulSell):''}`;
+      const tl=m.taxOn?m.tax.toFixed(1)+'% tax on sell':'no tax';
+      subStr=`${m.type||'Material'} + haul, ${dl} | mat sell: ${fmt(m.sell)} + tax: ${fmt(m.customerPrice-m.sell)}${haulOn?' + haul: '+fmt(haulSell):''}`;
     } else {
       const disp=targetPrice>0?targetPrice:m.raw;
       priceStr=fmt(disp);pClass='price-neutral';
@@ -370,17 +370,18 @@ function calc(){
   }
 
   // --- all-in ---
-  let allIn=0;
   if(mode==='margin'){
-    if(hasMat) allIn=haulOn?mat.rounded:applyRound(mat.sell);
+    if(hasMat) allIn=haulOn?mat.rounded:applyRound(mat.customerPrice);
     else if(haulOn) allIn=applyRound(haulSell);
   } else {
     allIn=targetPrice>0?targetPrice:(hasMat?mat.raw:haulSell);
   }
 
-  // --- margin table ---
   const haulNetCost=haulOn?netPayout:0;
-  const matCostVal=mat?mat.taxed:0;
+  const matCostVal=mat?mat.cost:0;
+  const matSellVal=mat?mat.sell:0;
+  const matCustomerPrice=mat?mat.customerPrice:0;
+  const combinedCost=haulNetCost+matCostVal;
   const combinedCost=haulNetCost+matCostVal;
   const combinedSell=allIn;
   const overTarget=mode==='target'&&targetPrice>0&&combinedCost>targetPrice;
@@ -414,14 +415,14 @@ function calc(){
         <td class="${haulOn?neg(haulNetCost,haulSell):''}">${haulOn?fp(mpct(haulNetCost,haulSell)):dash}</td>
       </tr>
       <tr>
-        <td>Material</td>
+        <td>Material${mat&&mat.taxOn?'<br><span style="font-size:10px;color:#999;font-weight:400;">+'+mat.effectiveTax.toFixed(1)+'% tax on sell</span>':''}</td>
         <td>${mat?fmt(matCostVal):dash}</td>
-        <td>${mat?fmt(mat.sell):dash}</td>
-        <td class="${mat?neg(matCostVal,mat.sell):''}">${mat?fmt(mdol(matCostVal,mat.sell)):dash}</td>
-        <td class="${mat?neg(matCostVal,mat.sell):''}">${mat?fp(mpct(matCostVal,mat.sell)):dash}</td>
+        <td>${mat?fmt(matSellVal):dash}</td>
+        <td class="${mat?neg(matCostVal,matSellVal):''}">${mat?fmt(mdol(matCostVal,matSellVal)):dash}</td>
+        <td class="${mat?neg(matCostVal,matSellVal):''}">${mat?fp(mpct(matCostVal,matSellVal)):dash}</td>
       </tr>
       <tr class="combined-row${overTarget?' over-target':''}">
-        <td>Combined</td>
+        <td>Combined${mat&&mat.taxOn?'<br><span style="font-size:10px;color:#999;font-weight:400;">incl. tax on mat sell</span>':''}</td>
         <td>${fmt(combinedCost)}</td>
         <td class="${overTarget?'neg':''}">${fmt(combinedSell)}</td>
         <td class="${mdol(combinedCost,combinedSell)<0||overTarget?'neg':''}">${fmt(mdol(combinedCost,combinedSell))}</td>

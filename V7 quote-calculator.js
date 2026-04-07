@@ -86,26 +86,25 @@ function calcHaul(haulCost, additionalMarginPct) {
  * @param {number} matCost - Raw material cost (before tax)
  * @param {number} taxRatePct - Tax rate percentage (e.g. 6.5). Pass 0 for tax-exempt.
  * @param {number} marginPct - Target gross margin percentage (0–60)
- * @returns {object} { taxedCost, sell, marginDollar, marginPct }
+ * @returns {object} { sell, customerPrice, marginDollar, marginPct }
  */
 function calcMaterial(matCost, taxRatePct, marginPct) {
   if (!matCost || matCost <= 0) {
-    return { taxedCost: 0, sell: 0, marginDollar: 0, marginPct: 0 };
+    return { sell: 0, customerPrice: 0, marginDollar: 0, marginPct: 0 };
   }
 
-  const taxedCost = matCost * (1 + taxRatePct / 100);
   const marginFraction = marginPct / 100;
+  const sell = marginFraction >= 1 ? matCost * 1000 : matCost / (1 - marginFraction);
 
-  const sell = marginFraction >= 1
-    ? taxedCost * 1000          // safety cap
-    : taxedCost / (1 - marginFraction);
+  // Tax is collected from the customer on top of the sell rate — not added to cost
+  const customerPrice = sell * (1 + taxRatePct / 100);
 
-  const marginDollar = sell - taxedCost;
+  const marginDollar = sell - matCost;
   const actualMarginPct = sell > 0 ? (marginDollar / sell) * 100 : 0;
 
   return {
-    taxedCost: round2(taxedCost),
     sell: round2(sell),
+    customerPrice: round2(customerPrice),
     marginDollar: round2(marginDollar),
     marginPct: round2(actualMarginPct),
   };

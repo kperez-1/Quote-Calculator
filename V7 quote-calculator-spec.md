@@ -85,30 +85,37 @@ totalMarginPct = ((haulSell - netPayout) / haulSell) × 100
 
 Tax applies to material only — never to hauling.
 
-Tax is applied to the raw material cost before margin is calculated:
+Tax is a **pass-through collected at the sell side**, not added to
+the cost basis. The customer is charged tax on the sell rate, and
+since the sell rate is higher than the cost, the tax collected from
+the customer exceeds the tax paid at purchase — covering the tax
+liability automatically.
 
 ```
-taxedCost = matCost × (1 + taxRate%)
+matSell        = matCost / (1 - margin%)
+customerPrice  = matSell × (1 + taxRate%)
 ```
+
+Tax is never added to cost before calculating margin.
 
 Default tax rate: **6.5%**
 
 Materials can be flagged as tax-exempt (e.g. aggregate sold for
-resale). When tax-exempt, `taxRate = 0` and `taxedCost = matCost`.
+resale). When tax-exempt, `taxRate = 0` and `customerPrice = matSell`.
 
 ### Material Sell Rate
 
-Margin is applied to the taxed cost using the gross margin method:
+Margin is applied to raw cost using the gross margin method:
 
 ```
-matSell = taxedCost / (1 - margin%)
+matSell = matCost / (1 - margin%)
 ```
 
 **Example:**
-- Material cost: $85 | Tax: 6.5%
-- Taxed cost = $85 × 1.065 = $90.525
-- Margin: 15%
-- Sell = $90.525 / 0.85 = **$106.50**
+- Material cost: $85 | Margin: 15%
+- Sell = $85 / 0.85 = **$100.00**
+- Tax (6.5%) collected from customer = $100.00 × 1.065 = **$106.50**
+- Your margin is calculated on $85 cost vs $100 sell — tax is separate
 
 Default material margin: **15%**
 
