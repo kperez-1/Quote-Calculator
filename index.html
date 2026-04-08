@@ -488,7 +488,9 @@ function openSaveQuoteOverlay(){
   const el=$('save-quote-overlay');
   if(!el)return;
   overlayPreviousFocus=document.activeElement;
-  $('save-quote-label-input').value='';
+  const customer=$('customer-name').value.trim();
+  const job=$('job-name').value.trim();
+  $('save-quote-label-input').value=(customer&&job)?(customer+' - '+job):'';
   el.classList.add('is-open');
   el.setAttribute('aria-hidden','false');
   setTimeout(()=>{$('save-quote-label-input').focus();},0);
