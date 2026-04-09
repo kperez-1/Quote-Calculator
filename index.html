@@ -141,6 +141,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .allin-row.up{color:#1D9E75;}
 .allin-row.down{color:#D85A30;}
 .allin-row.neutral{color:var(--brand-green-dark);}
+.combined-sell-main{display:inline-flex;align-items:baseline;justify-content:flex-end;gap:4px;max-width:100%;}
+.target-delta{
+  font-size:10px;
+  font-weight:600;
+  line-height:1.1;
+  white-space:nowrap;
+}
+.target-delta.up{color:#0e7a5f;}
+.target-delta.down{color:#b45309;}
+.combined-tax-note{display:block;font-size:10px;color:#6b7280;font-weight:500;line-height:1.25;margin-top:2px;text-align:right;}
 .results-target-field{
   margin-top:8px;
   display:flex;
@@ -646,13 +656,14 @@ function calc(){
     $('broker-note').style.display='none';
   }
 
-  // Material: margin on raw cost, tax applied on top of sell price
+  // Material: margin on pre-tax sell, tax applied on top for customer-facing total
   const matData=materials.map(m=>{
     const et=m.taxOn?m.tax:0;
     const sell=m.cost>0&&m.margin<100?m.cost/(1-m.margin/100):0;
-    const customerPrice=sell*(1+et/100);
+    const taxAmt=sell*(et/100);
+    const customerPrice=sell+taxAmt;
     const raw=customerPrice+haulSell;
-    return{...m,effectiveTax:et,sell,customerPrice,marginAmt:sell-m.cost,raw,rounded:applyRound(raw)};
+    return{...m,effectiveTax:et,sell,taxAmt,customerPrice,marginAmt:sell-m.cost,raw,rounded:applyRound(raw)};
   });
 
   const activeMats=matData.filter(m=>m.cost>0);
@@ -669,7 +680,7 @@ function calc(){
     $('result-filled').style.display='none';
     $('bk').innerHTML='';
     $('warning-banner').style.display='none';
-    lastCalc={uom,mat:null,haulOn:false,haulCost:0,haulSell:0,brokerKeep:0,netPayout:0,haulSlider:0,haulTotalMarginPct:0,mode,targetPrice:parseFloat($('target-price').value)||0,allIn:0};
+    lastCalc={uom,mat:null,haulOn:false,haulCost:0,haulSell:0,brokerKeep:0,netPayout:0,haulSlider:0,haulTotalMarginPct:0,mode,targetPrice:parseFloat($('target-price').value)||0,allIn:0,combinedSellPreTax:0,combinedTaxAmt:0};
     updateScript();
     return;
   }
@@ -677,16 +688,25 @@ function calc(){
   $('result-empty').style.display='none';
   $('result-filled').style.display='block';
 
-  // --- all-in price ---
-  let allIn=targetPrice>0?targetPrice:(hasMat?mat.raw:haulSell);
+  const matSellPreTax=mat?mat.sell:0;
+  const matTaxAmt=mat?mat.taxAmt:0;
+  const baselineAllIn=haulSell+matSellPreTax+matTaxAmt;
+  let combinedSellPreTax=haulSell+matSellPreTax;
+  if(targetPrice>0){
+    combinedSellPreTax=Math.max(0,targetPrice-matTaxAmt);
+  }
+  const combinedTaxAmt=matTaxAmt;
+  const allIn=targetPrice>0?targetPrice:(combinedSellPreTax+combinedTaxAmt);
+  const targetDelta=targetPrice>0?(targetPrice-baselineAllIn):0;
+  const deltaDir=targetDelta>0?'up':(targetDelta<0?'down':'flat');
 
   // --- margin table ---
   const haulNetCost=haulOn?netPayout:0;
   const matCostVal=mat?mat.cost:0;
-  const matSellVal=mat?mat.customerPrice:0;
+  const matSellVal=matSellPreTax;
   const combinedCost=haulNetCost+matCostVal;
-  const combinedSell=allIn;
-  const overTarget=targetPrice>0&&combinedCost>targetPrice;
+  const combinedSell=combinedSellPreTax;
+  const overTarget=targetPrice>0&&combinedCost>combinedSellPreTax;
 
   const mpct=(cost,sell)=>sell>0?((sell-cost)/sell*100):0;
   const mdol=(cost,sell)=>sell-cost;
@@ -726,7 +746,9 @@ function calc(){
       <tr class="combined-row${overTarget?' over-target':''}">
         <td class="col-rowhead">Combined</td>
         <td class="col-cost">${fmt(combinedCost)}</td>
-        <td class="col-sell ${overTarget?'neg':''}">${fmt(combinedSell)}</td>
+        <td class="col-sell ${overTarget?'neg':''}"><div class="combined-sell-main">${targetPrice>0&&Math.abs(targetDelta)>0.0001?'<span class="target-delta '
+          +deltaDir+'">'+(targetDelta>0?'▲ +':'▼ -')+fmt(Math.abs(targetDelta))+'</span>':''}<span>${fmt(combinedSell)}</span></div>${combinedTaxAmt>0?'<span class="combined-tax-note">Incl. tax: +'
+          +fmt(combinedTaxAmt)+'</span>':''}</td>
         <td class="col-margin-dollar ${mdol(combinedCost,combinedSell)<0||overTarget?'neg':''}">${fmt(mdol(combinedCost,combinedSell))}</td>
         <td class="col-margin-pct ${mpct(combinedCost,combinedSell)<0||overTarget?'neg':''}">${fp(mpct(combinedCost,combinedSell))}</td>
       </tr>
@@ -740,7 +762,7 @@ function calc(){
 
   $('warning-banner').style.display=overTarget?'block':'none';
 
-  lastCalc={uom,mat,haulOn,haulCost,haulSell,brokerKeep,netPayout,haulSlider,haulTotalMarginPct,mode,targetPrice,allIn};
+  lastCalc={uom,mat,haulOn,haulCost,haulSell,brokerKeep,netPayout,haulSlider,haulTotalMarginPct,mode,targetPrice,allIn,combinedSellPreTax,combinedTaxAmt};
   updateScript();
 }
 
@@ -756,9 +778,13 @@ function buildInternal(){
   if(v.haulOn)L.push('HAULING','  Cost:   '+fmt(v.haulCost),'  Sell:   '+fmt(v.haulSell),'');
   if(v.mat){
     const tl=v.mat.taxOn?v.mat.effectiveTax.toFixed(1)+'% tax on sell':'no tax';
-    L.push((v.mat.type||'MATERIAL').toUpperCase()+' ('+tl+')','  Cost:   '+fmt(v.mat.cost),'  Sell:   '+fmt(v.mat.customerPrice),'');
+    L.push((v.mat.type||'MATERIAL').toUpperCase()+' ('+tl+')','  Cost:   '+fmt(v.mat.cost),'  Sell (pre-tax):   '+fmt(v.mat.sell));
+    if(v.mat.taxOn&&v.mat.taxAmt>0)L.push('  Tax:    '+fmt(v.mat.taxAmt),'');
+    else L.push('');
   }
-  L.push('Target: '+fmt(v.allIn)+' / '+uomLabel[v.uom]);
+  L.push('Combined pre-tax: '+fmt(v.combinedSellPreTax||0)+' / '+uomLabel[v.uom]);
+  if((v.combinedTaxAmt||0)>0)L.push('Tax: '+fmt(v.combinedTaxAmt));
+  L.push('Target all-in: '+fmt(v.allIn)+' / '+uomLabel[v.uom]);
   L.push('','--- Allied Trucking of Palm Beach ---');
   return L.join('\n');
 }
